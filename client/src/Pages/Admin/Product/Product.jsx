@@ -3,9 +3,7 @@ import { DollarSign, Hash, Image, Layers, Package, Tag } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
-
 import useAxiosSesure from "../../../Hook/useAxiosSecure";
-// import useAxiosSecure from "../hooks/useAxiosSecure";
 
 const CATEGORY_OPTIONS = {
   MEN: {
@@ -40,7 +38,6 @@ const CATEGORY_OPTIONS = {
 };
 
 const Product = () => {
-
   const axiosSecure = useAxiosSesure();
   const { register, handleSubmit, reset } = useForm();
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -60,13 +57,22 @@ const Product = () => {
 
   // ✅ Submit Handler with SweetAlert
   const onSubmit = async (data) => {
+    if (!selectedCategory || !selectedSubCategory || !selectedType) {
+      Swal.fire({
+        icon: "warning",
+        title: "Incomplete Selection",
+        text: "Please select category, sub-category, and type before submitting.",
+      });
+      return;
+    }
+
     const productData = {
       ...data,
       category: selectedCategory,
       subCategory: selectedSubCategory,
       type: selectedType,
       discountPrice: 2000,
-       discount: '50%',
+      discount: '50%',
     };
 
     try {
@@ -95,7 +101,7 @@ const Product = () => {
   };
 
   return (
-    <div className="min-h-screen pt-5 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-300 flex items-center justify-center p-6">
+    <div className="min-h-screen pt-10 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-300 flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,60 +113,41 @@ const Product = () => {
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Main Category */}
+          {/* Always Show Full Form */}
           <BeautifulSelect
             label="Category"
             icon={<Layers className="w-5 h-5 text-purple-600" />}
             options={Object.keys(CATEGORY_OPTIONS)}
             value={selectedCategory}
             onChange={handleCategoryChange}
-            register={register("category", { required: true })}
+            register={register("category")}
           />
 
-          {/* Sub Category */}
-          {selectedCategory && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <BeautifulSelect
-                label="Sub Category"
-                icon={<Tag className="w-5 h-5 text-pink-600" />}
-                options={Object.keys(CATEGORY_OPTIONS[selectedCategory])}
-                value={selectedSubCategory}
-                onChange={handleSubCategoryChange}
-                register={register("subCategory", { required: true })}
-              />
-            </motion.div>
-          )}
+          <BeautifulSelect
+            label="Sub Category"
+            icon={<Tag className="w-5 h-5 text-pink-600" />}
+            options={selectedCategory ? Object.keys(CATEGORY_OPTIONS[selectedCategory]) : []}
+            value={selectedSubCategory}
+            onChange={handleSubCategoryChange}
+            register={register("subCategory")}
+          />
 
-          {/* Type */}
-          {selectedSubCategory && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <BeautifulSelect
-                label="Type"
-                icon={<Layers className="w-5 h-5 text-orange-600" />}
-                options={CATEGORY_OPTIONS[selectedCategory][selectedSubCategory]}
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                register={register("type", { required: true })}
-              />
-            </motion.div>
-          )}
+          <BeautifulSelect
+            label="Type"
+            icon={<Layers className="w-5 h-5 text-orange-600" />}
+            options={selectedSubCategory ? CATEGORY_OPTIONS[selectedCategory][selectedSubCategory] : []}
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            register={register("type")}
+          />
 
-          {/* Product Details Fields */}
-          {selectedType && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-5"
-            >
-              <InputField icon={<Image className="w-5 h-5 text-blue-500" />} label="Image URL" name="image" placeholder="Enter image URL" register={register} />
-              <InputField icon={<Package className="w-5 h-5 text-green-500" />} label="Product Name" name="name" placeholder="Enter product name" register={register} />
-              <InputField icon={<DollarSign className="w-5 h-5 text-yellow-500" />} label="Price ($)" name="price" type="number" placeholder="Enter price" register={register} />
-              <InputField icon={<Hash className="w-5 h-5 text-red-500" />} label="Quantity" name="quantity" type="number" placeholder="Enter quantity" register={register} />
-            </motion.div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <InputField icon={<Image className="w-5 h-5 text-blue-500" />} label="Image URL" name="image" placeholder="Enter image URL" register={register} />
+            <InputField icon={<Package className="w-5 h-5 text-green-500" />} label="Product Name" name="name" placeholder="Enter product name" register={register} />
+            <InputField icon={<DollarSign className="w-5 h-5 text-yellow-500" />} label="Price ($)" name="price" type="number" placeholder="Enter price" register={register} />
+            <InputField icon={<Hash className="w-5 h-5 text-red-500" />} label="Quantity" name="quantity" type="number" placeholder="Enter quantity" register={register} />
+          </div>
 
-          {/* Submit Button */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -183,7 +170,7 @@ const InputField = ({ label, name, register, type = "text", placeholder, icon })
       <span className="pl-3">{icon}</span>
       <input
         type={type}
-        {...register(name, { required: true })}
+        {...register(name)}
         placeholder={placeholder}
         className="w-full p-3 pl-2 rounded-lg focus:outline-none"
       />

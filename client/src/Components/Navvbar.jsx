@@ -7,7 +7,6 @@ import {
   ShoppingCart,
   User2,
   X,
-  ArrowLeft,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -246,28 +245,14 @@ const menuItems = [
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeMenuIndex, setActiveMenuIndex] = useState(null);
-  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState(null);
+  const [openSubmenu, setOpenSubmenu] = useState(null);
+  const [openSubSubmenu, setOpenSubSubmenu] = useState(null);
+  //search product
   const axiosSecure = useAxiosSecure();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-   const [hideSearch, setHideSearch] = useState(false);
-
-
-    // ✅ Scroll detection
-  useEffect(() => {
-    let lastScrollY = 0;
-    const handleScroll = () => {
-      if (window.scrollY > lastScrollY && window.scrollY > 80) {
-        setHideSearch(true); // স্ক্রল করলে লুকাবে
-      } else {
-        setHideSearch(false); // উপরে গেলে আবার দেখাবে
-      }
-      lastScrollY = window.scrollY;
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // console.log("search",searchTerm);
+  
 
 
   useEffect(() => {
@@ -278,193 +263,202 @@ const Navbar = () => {
           .then((res) => setSearchResults(res.data))
           .catch((err) => console.error(err));
       } else {
-        setSearchResults([]);
+        setSearchResults([]); // Clear results if input empty
       }
-    }, 400);
+    }, 400); // debounce for 400ms
 
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, axiosSecure]);
 
+
+
+
+
+  const toggleSubmenu = (index) => {
+    // If clicking the currently open submenu, close it
+    // Otherwise, open the new submenu and close any active sub-submenus
+    if (openSubmenu === index) {
+      setOpenSubmenu(null);
+      setOpenSubSubmenu(null);
+    } else {
+      setOpenSubmenu(index);
+      setOpenSubSubmenu(null);
+    }
+  };
+
+  const toggleSubSubmenu = (index) => {
+    setOpenSubSubmenu(openSubSubmenu === index ? null : index);
+  };
+
   const closeMenu = () => {
     setMenuOpen(false);
-    setActiveMenuIndex(null);
-    setActiveSubmenuIndex(null);
+    setOpenSubmenu(null);
+    setOpenSubSubmenu(null);
   };
-
-  const backToMainMenu = () => {
-    setActiveMenuIndex(null);
-    setActiveSubmenuIndex(null);
-  };
-
-  const backToSubmenu = () => {
-    setActiveSubmenuIndex(null);
-  };
-
-  const slideBase = "absolute top-0 left-0 w-full h-full bg-white/95 backdrop-blur-xl overflow-y-auto p-6 transition-all";
 
   return (
     <>
       {/* Navbar Header */}
-      <nav className="w-full bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-md font-sans tracking-wide z-20 fixed top-0 left-0">
-        <div className="h-16 flex items-center justify-between px-6 sm:px-10">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="text-3xl sm:text-4xl text-gray-900 tracking-widest font-semibold select-none drop-shadow-sm hover:scale-105 transition-transform duration-300"
+ <nav className="w-full bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-md font-sans tracking-wide z-20 fixed top-0 left-0">
+  {/* Top Row (Logo & Icons) */}
+  <div className="h-16 flex items-center justify-between px-6 sm:px-10">
+    {/* Logo */}
+    <Link
+      to="/"
+      className="text-3xl sm:text-3xl text-black tracking-widest font-semibold select-none drop-shadow-sm"
+    >
+      Luxxora
+    </Link>
+
+    {/* Action Icons */}
+    <div className="flex items-center space-x-5 sm:space-x-7 text-black text-2xl relative">
+      <Link to="/wishlist" title="Wishlist">
+        <Heart className="w-8 h-8 hover:scale-110 hover:text-red-600 transition-transform duration-200" />
+      </Link>
+      <Link to="/auth/login" title="Login">
+        <User2 className="w-8 h-8 hover:scale-110 hover:text-blue-600 transition-transform duration-200" />
+      </Link>
+      <Link to="/cart" title="Cart">
+        <ShoppingCart className="w-8 h-8 hover:scale-110 hover:text-green-600 transition-transform duration-200" />
+      </Link>
+      <button
+        title="Menu"
+        onClick={() => setMenuOpen(!menuOpen)}
+        className="hover:scale-110 hover:text-gray-900 transition-transform duration-200"
+      >
+        {menuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+      </button>
+    </div>
+  </div>
+
+
+
+  {/* Search Bar Row */}
+  <div className="hidden md:flex justify-start px-6 pb-3">
+    <div className="relative w-full max-w-8xl">
+      <input
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        type="text"
+        placeholder="Search..."
+         className="w-full pl-14 pr-4 py-2.5 bg-gray-100
+             border-b border-gray-400
+             focus:outline-none focus:ring-0 focus:border-black
+             text-base font-medium placeholder-gray-500"
+      />
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+        <Search className="w-8 h-8" />  {/* bigger icon */}
+      </span>
+    </div>
+
+
+
+    {searchResults.length > 0 && (
+      <div className="absolute mt-12 w-full max-w-lg bg-white shadow-lg rounded-lg z-50 max-h-64 overflow-y-auto">
+        {searchResults.map((item) => (
+          <div
+            key={item._id}
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b"
           >
-            Luxxora
-          </Link>
-
-          {/* Action Icons */}
-          <div className="flex items-center space-x-6 text-gray-800 text-2xl relative">
-            <Link to="/wishlist" title="Wishlist" className="relative group">
-              <Heart className="w-7 h-7 group-hover:text-red-500 transition duration-300" />
-            </Link>
-            <Link to="/auth/login" title="Login" className="relative group">
-              <User2 className="w-7 h-7 group-hover:text-blue-500 transition duration-300" />
-            </Link>
-            <Link to="/cart" title="Cart" className="relative group">
-              <ShoppingCart className="w-7 h-7 group-hover:text-green-500 transition duration-300" />
-              <span className="absolute -top-1 -right-2 bg-black text-white text-xs px-1.5 rounded-full">3</span>
-            </Link>
-            <button
-              title="Menu"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
-            >
-              {menuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-            </button>
+            {item.name}
           </div>
-        </div>
+        ))}
+      </div>
+    )}
+  </div>
+</nav>
 
-        {/* Search Bar */}
-           <div
-          className={`hidden md:flex justify-start px-6 pb-3 transition-all duration-500 ${
-            hideSearch ? "opacity-0 -translate-y-5 h-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto"
-          }`}
-        >
-          <div className="relative w-full max-w-7xl">
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              type="text"
-              placeholder="Search for luxury fashion, brands & more..."
-              className="w-full pl-14 pr-4 py-3 bg-gray-100 rounded-lg
-              border border-transparent focus:border-black
-              focus:ring-1 focus:ring-black
-              text-base font-medium placeholder-gray-400
-              transition-all duration-300 shadow-sm"
-            />
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
-              <Search className="w-7 h-7 opacity-70" />
-            </span>
-          </div>
-        </div>
-      </nav>
 
-      {/* Fullscreen Menu */}
+
+
+
+
+
+
+      {/* Full-width Dropdown Menu */}
       {menuOpen && (
-        <div className="fixed top-16 left-0 w-full h-[calc(100vh-4rem)] bg-white/95 backdrop-blur-xl shadow-xl z-30 overflow-hidden border-t border-gray-200 animate-fadeIn">
-          {/* Top-level Menu */}
-          {!activeMenuIndex && (
-            <div className={`${slideBase} animate-slideInFromRight`}>
-              {menuItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    if (item.submenu) {
-                      setActiveMenuIndex(index);
-                      setActiveSubmenuIndex(null);
-                    } else {
-                      closeMenu();
-                    }
-                  }}
-                  className="w-full flex justify-between items-center px-6 py-5 text-black font-medium text-xl hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
-                >
-                  {item.name}
-                  {item.submenu && <ChevronDown className="w-5 h-5 opacity-70" />}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Submenu */}
-          {activeMenuIndex !== null && activeSubmenuIndex === null && (
-            <div className={`${slideBase} animate-slideInFromRight`}>
+        <div className="fixed top-16 left-0 w-full h-[calc(100vh-4rem)] bg-white shadow-xl z-30 overflow-y-auto border-t border-gray-200 animate-slideDown">
+          {menuItems.map((item, index) => (
+            <div key={index}>
               <button
-                onClick={backToMainMenu}
-                className="flex items-center space-x-2 mb-5 text-gray-700 font-medium hover:text-black transition"
+                onClick={() => {
+                  if (item.submenu) {
+                    toggleSubmenu(index);
+                  } else {
+                    closeMenu(); // Close the entire menu if there's no submenu
+                  }
+                }}
+                className="w-full flex justify-between items-center px-6 py-6 text-black font-normal text-lg hover:bg-gray-50 transition border-b border-black"
               >
-                <ArrowLeft className="w-6 h-6" />
-                <span>Back</span>
+                {item.name}
+                {item.submenu && (
+                  <span>
+                    {openSubmenu === index ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </span>
+                )}
               </button>
-              {menuItems[activeMenuIndex].submenu.map((sub, subIdx) => (
-                <div key={subIdx}>
-                  {sub.subsubmenu ? (
-                    <button
-                      onClick={() => setActiveSubmenuIndex(subIdx)}
-                      className="w-full flex justify-between text-xl  items-center px-6 py-5 text-black font-normal hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
-                    >
-                      {sub.name}
-                      <ChevronDown className="w-4 h-4 opacity-70" />
-                    </button>
-                  ) : (
-                    <Link
-                      to={sub.path}
-                      onClick={closeMenu}
-                      className="block px-6 py-5 text-black font-medium hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
-                    >
-                      {sub.name}
-                    </Link>
-                  )}
+
+              {/* Submenu */}
+              {item.submenu && openSubmenu === index && (
+                <div className="bg-gray-50">
+                  {item.submenu.map((sub, subIdx) => (
+                    <div key={subIdx}>
+                      {sub.subsubmenu ? (
+                        <>
+                          <button
+                            onClick={() => toggleSubSubmenu(subIdx)}
+                            className="w-full flex justify-between items-center pl-10 pr-6 py-5  text-black hover:bg-gray-100 transition border-b border-black"
+                          >
+                            {sub.name}
+                            <span>
+                              {openSubSubmenu === subIdx ? (
+                                <ChevronUp className="w-3 h-3" />
+                              ) : (
+                                <ChevronDown className="w-3 h-3" />
+                              )}
+                            </span>
+                          </button>
+                          {openSubSubmenu === subIdx && (
+                            <div className="bg-gray-100">
+                              {sub.subsubmenu.map((subsub, subsubIdx) => (
+                                <Link
+                                  key={subsubIdx}
+                                  to={subsub.path}
+                                  onClick={closeMenu} // Close entire menu
+                                  className="block pl-14 pr-6 py-2 text-lg text-gray-700 hover:bg-gray-200 transition border-b border-gray-300 last:border-b-0"
+                                >
+                                  {subsub.name}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <Link
+                          to={sub.path}
+                          onClick={closeMenu} // Close entire menu
+                          className="block pl-10 pr-6 py-2 text-black hover:bg-gray-100 transition border-b border-gray-200"
+                        >
+                          {sub.name}
+                        </Link>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Sub-submenu */}
-          {activeMenuIndex !== null && activeSubmenuIndex !== null && (
-            <div className={`${slideBase} animate-slideInFromRight`}>
-              <button
-                onClick={backToSubmenu}
-                className="flex items-center space-x-2 mb-5 text-gray-700 font-medium hover:text-black transition"
-              >
-                <ArrowLeft className="w-6 h-6" />
-                <span>Back</span>
-              </button>
-              {menuItems[activeMenuIndex].submenu[activeSubmenuIndex].subsubmenu.map(
-                (subsub, subsubIdx) => (
-                  <Link
-                    key={subsubIdx}
-                    to={subsub.path}
-                    onClick={closeMenu}
-                    className="block px-6 py-5 text-black font-normal text-xl hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
-                  >
-                    {subsub.name}
-                  </Link>
-                )
               )}
             </div>
-          )}
+          ))}
         </div>
       )}
 
-      <style>{`
-        @keyframes slideInFromRight {
-          0% { transform: translateX(100%); opacity: 0; }
-          100% { transform: translateX(0); opacity: 1; }
-        }
-        .animate-slideInFromRight {
-          animation: slideInFromRight 0.35s ease forwards;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease forwards;
-        }
-      `}</style>
+
+
+
+
     </>
   );
 };
