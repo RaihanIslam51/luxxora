@@ -2,21 +2,21 @@ import { motion } from 'framer-motion';
 import { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import toast from 'react-hot-toast';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './Context/AuthContext';
-import useAxiosSesure from '../Hook/useAxiosSecure';
-// import axiosInstance from '../Hooks/AxiosSeure/asiosInstance';
-// import { AuthContext } from './Context/AuthContext';
+import useAxiosSecure from '../Hook/useAxiosSecure';
 
 const Register = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [passwordShow, setPasswordShow] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state || '/';
+  const from = location.state?.from?.pathname || '/';
 
-  const { createUser, GoogleLogin, setUserData, updateUser } = useContext(AuthContext);
+  const { createUser, UserData, GoogleLogin, setUserData, updateUser } = useContext(AuthContext);
+  const axiosSecure = useAxiosSecure();
 
+  // ✅ Handle Manual Registration
   const handleSubmit = async (e) => {
     e.preventDefault();
     const name = e.target.name.value;
@@ -25,14 +25,6 @@ const Register = () => {
     const password = e.target.password.value;
 
     setErrorMessage('');
-    const passwordRegEx = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
-
-    if (!passwordRegEx.test(password)) {
-      const msg = 'Password must include uppercase, lowercase, digit, and be at least 6 characters.';
-      setErrorMessage(msg);
-      toast.error(msg);
-      return;
-    }
 
     try {
       const result = await createUser(email, password);
@@ -47,48 +39,45 @@ const Register = () => {
         photo,
         email,
         role: 'user',
-        payment_status: 'Bronze Badge',
         created_at: new Date().toISOString(),
-        last_log_in: new Date().toISOString()
+        
       };
 
-      const res = await useAxiosSesure.post('/users', userInfo);
-      console.log(res.data);
-
+      await axiosSecure.post('/users', userInfo);
       toast.success('Account created successfully!');
       navigate(from, { replace: true });
     } catch (error) {
-      console.error(error.message);
-      setErrorMessage(error.message);
-      toast.error('Registration failed.');
+      console.error('Register error:', error);
+      setErrorMessage(error.message || 'Registration failed');
+      toast.error(error.message || 'Registration failed.');
     }
   };
 
+  // ✅ Handle Google Login
   const handleGoogleLogin = async () => {
     try {
       const result = await GoogleLogin();
+      console.log('Google login result:', result);
       const user = result.user;
 
-      // const userInfo = {
-      //   name: user.displayName || 'No Name',
-      //   photo: user.photoURL || '',
-      //   email: user.email,
-      //   role: 'user',
-      //   payment_status: 'Bronze Badge',
-      //   created_at: new Date().toISOString(),
-      //   last_log_in: new Date().toISOString()
-      // };
+      const userInfo = {
+        name: user.displayName || 'No Name',
+        photo: user.photoURL || '',
+        email: user.email,
+        role: 'user',
+        created_at: new Date().toISOString(),
+        
+      };
 
-      // const res = await useAxiosSesure.post('/users', userInfo);
-      // console.log(res.data);
-
+      await axiosSecure.post('/users', userInfo);
       setUserData(user);
+
       toast.success('Signed in with Google!');
       navigate(from, { replace: true });
     } catch (error) {
-      console.error(error.message);
-      setErrorMessage(error.message);
-      toast.error('Google sign-in failed.');
+      console.error('Google sign-in error:', error);
+      setErrorMessage(error.message || 'Google sign-in failed.');
+      toast.error(error.message || 'Google sign-in failed.');
     }
   };
 
@@ -108,7 +97,9 @@ const Register = () => {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-base font-semibold text-green-900 mb-1">Full Name</label>
+            <label htmlFor="name" className="block text-base font-semibold text-green-900 mb-1">
+              Full Name
+            </label>
             <input
               id="name"
               name="name"
@@ -119,7 +110,9 @@ const Register = () => {
             />
           </div>
           <div>
-            <label htmlFor="photo" className="block text-base font-semibold text-green-900 mb-1">Photo URL</label>
+            <label htmlFor="photo" className="block text-base font-semibold text-green-900 mb-1">
+              Photo URL
+            </label>
             <input
               id="photo"
               name="photo"
@@ -129,7 +122,9 @@ const Register = () => {
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-base font-semibold text-green-900 mb-1">Email</label>
+            <label htmlFor="email" className="block text-base font-semibold text-green-900 mb-1">
+              Email
+            </label>
             <input
               id="email"
               name="email"
@@ -140,7 +135,9 @@ const Register = () => {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-base font-semibold text-green-900 mb-1">Password</label>
+            <label htmlFor="password" className="block text-base font-semibold text-green-900 mb-1">
+              Password
+            </label>
             <div className="relative">
               <input
                 id="password"
@@ -158,9 +155,7 @@ const Register = () => {
               </span>
             </div>
           </div>
-          {errorMessage && (
-            <p className="text-red-600 text-sm font-medium">{errorMessage}</p>
-          )}
+          {errorMessage && <p className="text-red-600 text-sm font-medium">{errorMessage}</p>}
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-green-700 via-lime-600 to-emerald-500 text-white py-3 rounded-2xl font-bold text-lg shadow-lg hover:scale-105 transition-transform duration-200"
@@ -185,7 +180,9 @@ const Register = () => {
 
         <p className="mt-7 text-center text-base">
           Already have an account?{' '}
-          <Link to="/auth/login" className="text-green-700 underline font-bold hover:text-emerald-600 transition">Login</Link>
+          <Link to="/auth/login" className="text-green-700 underline font-bold hover:text-emerald-600 transition">
+            Login
+          </Link>
         </p>
       </motion.div>
     </div>

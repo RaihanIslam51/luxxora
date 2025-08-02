@@ -9,9 +9,12 @@ import {
   X,
   ArrowLeft,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import useAxiosSecure from "../Hook/useAxiosSecure";
+import { AuthContext } from "../Authantation/Context/AuthContext";
+
+
 
 const menuItems = [
   {
@@ -245,6 +248,13 @@ const menuItems = [
 ];
 
 const Navbar = () => {
+  const {UserData,SignOutUser}=useContext (AuthContext)
+    useEffect(() => {
+    if (UserData?.email) {
+      console.log("User Email:", UserData.email);
+    }
+  }, [UserData]);
+  
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeMenuIndex, setActiveMenuIndex] = useState(null);
   const [activeSubmenuIndex, setActiveSubmenuIndex] = useState(null);
@@ -252,6 +262,7 @@ const Navbar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
    const [hideSearch, setHideSearch] = useState(false);
+   const [showLogout, setShowLogout] = useState(false);
 
 
     // ✅ Scroll detection
@@ -284,6 +295,16 @@ const Navbar = () => {
 
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, axiosSecure]);
+
+    // ✅ Logout
+  const handleLogout = async () => {
+    try {
+      await SignOutUser();
+      setShowLogout(false);
+    } catch (error) {
+      console.error("Logout Error:", error);
+    }
+  };
 
   const closeMenu = () => {
     setMenuOpen(false);
@@ -320,9 +341,41 @@ const Navbar = () => {
             <Link to="/wishlist" title="Wishlist" className="relative group">
               <Heart className="w-7 h-7 group-hover:text-red-500 transition duration-300" />
             </Link>
-            <Link to="/auth/login" title="Login" className="relative group">
-              <User2 className="w-7 h-7 group-hover:text-blue-500 transition duration-300" />
-            </Link>
+
+
+
+          {UserData ? (
+              <div
+                className="relative group"
+                onMouseEnter={() => setShowLogout(true)}
+                onMouseLeave={() => setShowLogout(false)}
+              >
+                <img
+                  src={
+                    UserData.photoURL ||
+                    "https://i.ibb.co/2FxFsjK/default-avatar.png"
+                  }
+                  alt="User Profile"
+                  className="w-10 h-10 rounded-full border cursor-pointer hover:scale-105 transition duration-300"
+                />
+                {showLogout && (
+                  <button
+                    onClick={handleLogout}
+                   className="absolute -top-2 bg-red-500 text-white text-sm px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition-all"
+                  >
+                    Logout
+                  </button>
+                )}
+              </div>
+            ) : (
+              <Link to="/auth/login" title="Login" className="relative group">
+                <User2 className="w-7 h-7 group-hover:text-blue-500 transition duration-300" />
+              </Link>
+            )}
+
+
+
+
             <Link to="/cart" title="Cart" className="relative group">
               <ShoppingCart className="w-7 h-7 group-hover:text-green-500 transition duration-300" />
               <span className="absolute -top-1 -right-2 bg-black text-white text-xs px-1.5 rounded-full">3</span>

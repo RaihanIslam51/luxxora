@@ -243,6 +243,7 @@ const menuItems = [
   { name: "Wishlist", path: "/wishlist" },
 ];
 
+
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState(null);

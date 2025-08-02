@@ -1,48 +1,111 @@
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DollarSign, Hash, Image, Layers, Package, Tag } from "lucide-react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import useAxiosSesure from "../../../Hook/useAxiosSecure";
+import { FaTrashAlt } from "react-icons/fa";
 
 const CATEGORY_OPTIONS = {
   MEN: {
-    Clothing: ["T-shirt", "Sweatshirt", "Leather", "Coats & Jackets", "Knitwear", "Denim", "Short", "Swimwear", "Underwear & Socks"],
-    Shoes: ["Sneakers", "Out of Office", "Be Right Back", "Vulcanized", "Boots", "Formal Shoes", "Loafers", "Slides"],
+    Clothing: [
+      "T-shirt",
+      "Sweatshirt",
+      "Leather",
+      "Coats & Jackets",
+      "Knitwear",
+      "Denim",
+      "Short",
+      "Swimwear",
+      "Underwear & Socks",
+    ],
+    Shoes: [
+      "Sneakers",
+      "Out of Office",
+      "Be Right Back",
+      "Vulcanized",
+      "Boots",
+      "Formal Shoes",
+      "Loafers",
+      "Slides",
+    ],
     Bags: ["Backpack", "Crossbody Bag", "Tote Bag", "Waist Bags and Clutches"],
     Accessories: ["Wallet and Cardholders", "Hats and Scarves", "Other Accessories"],
-    Jewelry: ["Bracelets", "Necklaces", "Rings", "Earrings"]
+    Jewelry: ["Bracelets", "Necklaces", "Rings", "Earrings"],
   },
   WOMEN: {
     Activewear: ["Tops & Bras", "Leggings"],
-    Clothing: ["T-Shirts & Tops", "Knitwear", "Sweatshirt", "Dresses", "Coats & Jackets", "Leather", "Denim", "Pants", "Shirts","Swimwear", "Underwear & Socks", "Skirts", "Sweaters"],
-    Shoes: ["Sneakers", "Out of Office", "Be Right Back", "Vulcanized", "Boots and Ankle Boots", "Heels", "Flats", "Mules and Pumps", "Sandals", "Loafer and Flat Shoes", "Sliders and Espadrillas"],
+    Clothing: [
+      "T-Shirts & Tops",
+      "Knitwear",
+      "Sweatshirt",
+      "Dresses",
+      "Coats & Jackets",
+      "Leather",
+      "Denim",
+      "Pants",
+      "Shirts",
+      "Swimwear",
+      "Underwear & Socks",
+      "Skirts",
+      "Sweaters",
+    ],
+    Shoes: [
+      "Sneakers",
+      "Out of Office",
+      "Be Right Back",
+      "Vulcanized",
+      "Boots and Ankle Boots",
+      "Heels",
+      "Flats",
+      "Mules and Pumps",
+      "Sandals",
+      "Loafer and Flat Shoes",
+      "Sliders and Espadrillas",
+    ],
     Bags: ["Clutches and Pouches", "Tote Bags", "Top Hand Bags", "Shoulder Bag"],
     Accessories: ["Wallet and Cardholders", "Soft Accessories", "Belts"],
-    Jewelry: ["Earrings", "Bracelets", "Necklaces", "Rings"]
+    Jewelry: ["Earrings", "Bracelets", "Necklaces", "Rings"],
   },
   KID: {
     Boys: ["Boy's Clothing", "Boy's Shoes", "Boy's Accessories"],
     Girls: ["Girl's Clothing", "Girl's Shoes", "Girl's Accessories"],
-    Baby: ["Baby Clothing"]
+    Baby: ["Baby Clothing"],
   },
   EYEWEAR: {
-    Types: ["Sunglasses", "Eyeglass", ]
+    Types: ["Sunglasses", "Eyeglass"],
   },
   ICONS: {
-    Types: ["Women's Icons", "Men's Icons"]
+    Types: ["Women's Icons", "Men's Icons"],
   },
   "Special Collection": {
-    Seasons: ["Fall", "Winter", "Fresco"]
-  }
+    Seasons: ["Fall", "Winter", "Fresco"],
+  },
 };
+
+const IMG_API_KEY = "36f47c5ee620bb292f8a6a4a24adb091";
+
+const PRODUCTS_PER_PAGE = 10;
 
 const Product = () => {
   const axiosSecure = useAxiosSesure();
   const { register, handleSubmit, reset } = useForm();
+
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
+
+  // For showing products table & data
+  const [allProducts, setAllProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [showProductsTable, setShowProductsTable] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Category filter for product list table
+  const [filterCategory, setFilterCategory] = useState("All");
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
@@ -55,24 +118,56 @@ const Product = () => {
     setSelectedType("");
   };
 
-  // ✅ Submit Handler with SweetAlert
+  // Add product form submit
   const onSubmit = async (data) => {
     if (!selectedCategory || !selectedSubCategory || !selectedType) {
-      Swal.fire({
+      return Swal.fire({
         icon: "warning",
         title: "Incomplete Selection",
         text: "Please select category, sub-category, and type before submitting.",
       });
-      return;
+    }
+
+    setLoadingSubmit(true);
+
+    const imageFile = data.image[0];
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    let imageUrl = "";
+    try {
+      const res = await fetch(
+        `https://api.imgbb.com/1/upload?key=${IMG_API_KEY}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const imgData = await res.json();
+
+      if (!imgData.success) {
+        throw new Error("Image upload failed");
+      }
+      imageUrl = imgData.data.display_url;
+    } catch (error) {
+      setLoadingSubmit(false);
+      return Swal.fire({
+        icon: "error",
+        title: "Upload Failed!",
+        text: "Image could not be uploaded.",
+      });
     }
 
     const productData = {
-      ...data,
+      name: data.name,
+      price: parseFloat(data.price),
+      quantity: parseInt(data.quantity),
+      image: imageUrl,
       category: selectedCategory,
       subCategory: selectedSubCategory,
       type: selectedType,
       discountPrice: 2000,
-      discount: '50%',
+      discount: "50%",
     };
 
     try {
@@ -88,20 +183,79 @@ const Product = () => {
         setSelectedCategory("");
         setSelectedSubCategory("");
         setSelectedType("");
+        setShowProductsTable(false);
+        setFilterCategory("All");
+        setCurrentPage(1);
       }
     } catch (error) {
-      console.error("❌ Error adding product:", error);
       Swal.fire({
         icon: "error",
         title: "Failed to Add!",
         text: "Something went wrong while adding the product.",
         confirmButtonColor: "#e11d48",
       });
+    } finally {
+      setLoadingSubmit(false);
     }
   };
 
+  // Fetch all products on button click
+  const handleSeeAllProducts = async () => {
+    try {
+      const res = await axiosSecure.get("/products");
+      setAllProducts(res.data);
+      setShowProductsTable(true);
+      setFilterCategory("All");
+      setCurrentPage(1);
+    } catch (error) {
+      Swal.fire("Error", "Failed to fetch products!", "error");
+    }
+  };
+
+  // Delete product by id
+  const handleDeleteProduct = async (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This product will be deleted permanently!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axiosSecure.delete(`/products/${id}`);
+          setAllProducts((prev) => prev.filter((product) => product._id !== id));
+          Swal.fire("Deleted!", "Product has been deleted.", "success");
+          // Reset page if last item deleted on current page
+          if ((filteredProducts.length - 1) <= (currentPage - 1) * PRODUCTS_PER_PAGE && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+          }
+        } catch {
+          Swal.fire("Error", "Failed to delete product!", "error");
+        }
+      }
+    });
+  };
+
+  // Filter products by filterCategory
+  useEffect(() => {
+    if (filterCategory === "All") {
+      setFilteredProducts(allProducts);
+    } else {
+      setFilteredProducts(allProducts.filter((p) => p.category === filterCategory));
+    }
+    setCurrentPage(1); // reset to first page on filter change
+  }, [filterCategory, allProducts]);
+
+  // Pagination helpers
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const startIdx = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const currentProducts = filteredProducts.slice(startIdx, startIdx + PRODUCTS_PER_PAGE);
+
   return (
-    <div className="min-h-screen pt-10 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-300 flex items-center justify-center p-6">
+    <div className="min-h-screen pt-25 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-300 flex flex-col items-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -113,7 +267,6 @@ const Product = () => {
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Always Show Full Form */}
           <BeautifulSelect
             label="Category"
             icon={<Layers className="w-5 h-5 text-purple-600" />}
@@ -142,27 +295,155 @@ const Product = () => {
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <InputField icon={<Image className="w-5 h-5 text-blue-500" />} label="Image URL" name="image" placeholder="Enter image URL" register={register} />
-            <InputField icon={<Package className="w-5 h-5 text-green-500" />} label="Product Name" name="name" placeholder="Enter product name" register={register} />
-            <InputField icon={<DollarSign className="w-5 h-5 text-yellow-500" />} label="Price ($)" name="price" type="number" placeholder="Enter price" register={register} />
-            <InputField icon={<Hash className="w-5 h-5 text-red-500" />} label="Quantity" name="quantity" type="number" placeholder="Enter quantity" register={register} />
+            <InputField
+              icon={<Image className="w-5 h-5 text-blue-500" />}
+              label="Upload Image"
+              name="image"
+              type="file"
+              placeholder="Choose image"
+              register={register}
+            />
+            <InputField
+              icon={<Package className="w-5 h-5 text-green-500" />}
+              label="Product Name"
+              name="name"
+              placeholder="Enter product name"
+              register={register}
+            />
+            <InputField
+              icon={<DollarSign className="w-5 h-5 text-yellow-500" />}
+              label="Price ($)"
+              name="price"
+              type="number"
+              placeholder="Enter price"
+              register={register}
+            />
+            <InputField
+              icon={<Hash className="w-5 h-5 text-red-500" />}
+              label="Quantity"
+              name="quantity"
+              type="number"
+              placeholder="Enter quantity"
+              register={register}
+            />
           </div>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             type="submit"
-            className="w-full py-3 text-lg font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-md hover:from-pink-500 hover:to-orange-400 transition"
+            disabled={loadingSubmit}
+            className={`w-full py-3 text-lg font-semibold rounded-xl text-white shadow-md transition ${
+              loadingSubmit
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-500 hover:to-orange-400"
+            }`}
           >
-            ➕ Add Product
+            {loadingSubmit ? "Adding Product..." : "➕ Add Product"}
           </motion.button>
         </form>
       </motion.div>
+
+      <button
+        onClick={handleSeeAllProducts}
+        className="mt-8 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+      >
+        📋 See All Products
+      </button>
+
+      {showProductsTable && (
+        <div className="mt-6 overflow-x-auto max-w-7xl mx-auto px-4 w-full">
+          <div className="flex justify-between items-center mb-4">
+            {/* Category Filter */}
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="p-2 rounded border border-gray-300 shadow-sm"
+            >
+              <option value="All">All Categories</option>
+              <option value="MEN">MEN</option>
+              <option value="WOMEN">WOMEN</option>
+              <option value="KID">KID</option>
+            </select>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center gap-3">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1 rounded bg-purple-600 text-white disabled:bg-gray-400"
+              >
+                Prev
+              </button>
+              <span className="text-gray-700 font-semibold">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1 rounded bg-purple-600 text-white disabled:bg-gray-400"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          {filteredProducts.length === 0 ? (
+            <p className="text-center text-gray-600 mt-4">No products found.</p>
+          ) : (
+            <table className="w-full border border-gray-300 rounded-lg shadow-sm">
+              <thead>
+                <tr className="bg-gray-100 text-left text-gray-700 uppercase text-sm">
+                  <th className="p-3">Image</th>
+                  <th className="p-3">Name</th>
+                  <th className="p-3">Category</th>
+                  <th className="p-3">Sub-Category</th>
+                  <th className="p-3">Type</th>
+                  <th className="p-3">Price ($)</th>
+                  <th className="p-3">Quantity</th>
+                  <th className="p-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentProducts.map((product) => (
+                  <tr key={product._id} className="border-t hover:bg-gray-50">
+                    <td className="p-2">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-20 h-16 object-cover rounded"
+                      />
+                    </td>
+                    <td className="p-3 font-medium">{product.name}</td>
+                    <td className="p-3">{product.category}</td>
+                    <td className="p-3">{product.subCategory}</td>
+                    <td className="p-3">{product.type}</td>
+                    <td className="p-3">
+                      {product.price !== undefined && product.price !== null
+                        ? Number(product.price).toFixed(2)
+                        : "N/A"}
+                    </td>
+                    <td className="p-3">{product.quantity}</td>
+                    <td className="p-3 text-center">
+                      <button
+                        onClick={() => handleDeleteProduct(product._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+                        title="Delete Product"
+                      >
+                        <FaTrashAlt />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
-/** Input Component */
 const InputField = ({ label, name, register, type = "text", placeholder, icon }) => (
   <div className="relative">
     <label className="block text-white text-sm font-medium mb-2">{label}</label>
@@ -178,7 +459,6 @@ const InputField = ({ label, name, register, type = "text", placeholder, icon })
   </div>
 );
 
-/** Select Component */
 const BeautifulSelect = ({ label, icon, options, value, onChange, register }) => (
   <div className="relative">
     <label className="block text-white text-sm font-medium mb-2">{label}</label>

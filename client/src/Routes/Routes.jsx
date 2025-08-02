@@ -106,6 +106,10 @@ import ViewAllWAs from "../Pages/Women/Accessories/ViewAllWAs";
 import ViewAllJJ from "../Pages/Women/Jewelry/ViewAllJJ";
 import ViewBoys from "../Pages/Kids/Boys/ViewBoys";
 import ViewGG from "../Pages/Kids/Girls/ViewGG";
+import Cart from "../Pages/Cart/Cart";
+import WishList from "../Pages/WishList/WishList";
+import ProductDetails from "../Pages/Men/Products-Details/ProductDetails";
+import Banner from "../Pages/Admin/Banner/Banner";
 
 
 export const router = createBrowserRouter([
@@ -115,12 +119,29 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", index: true, Component: Home },
       
+      
       // Sales
       { path: "/sales", Component: GenericPage},
       { path: "/sales/men", Component:MenSales },
       { path: "/sales/women", Component: WomenSales},
       { path: "/sales/kids", Component: KidSales },
       { path: "/sales/all", Component: ViewAll },
+
+      //all icon
+      {  path: "/product/:id",
+         loader: async ({ params }) => {
+      const res = await fetch(`http://localhost:5000/api/products/${params.id}`);
+      if (!res.ok) {
+        throw new Response("Product not found", { status: 404 });
+      }
+      return res.json();
+    },
+    element: <ProductDetails />},
+
+
+
+     //cart pages
+      {path:"/wishlist",Component:WishList},
 
       // Men
       { path: "/men/clothing/tshirt", Component:Tshirt },
@@ -244,7 +265,7 @@ export const router = createBrowserRouter([
 
       // Admin
       { path: "/admin", Component: GenericPage },
-      { path: "/admin/banner", Component: GenericPage },
+      { path: "/admin/banner", Component: Banner },
       { path: "/admin/product", Component: Product },
 
       // Others
