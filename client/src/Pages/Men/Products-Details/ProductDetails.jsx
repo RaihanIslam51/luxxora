@@ -4,12 +4,6 @@ import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import useAxiosSecure from "../../../Hook/useAxiosSecure";
 
-
-
-
-
-
-
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -34,7 +28,10 @@ const ProductDetails = () => {
     fetchProduct();
   }, [axiosSecure, id]);
 
-  const handleAddToCart = async () => {
+  // Your WhatsApp number in international format without '+' or '00'
+  const whatsappNumber = "8801723148545";
+
+  const handleAddToCart = () => {
     if (!selectedSize) {
       Swal.fire({
         icon: "warning",
@@ -52,44 +49,30 @@ const ProductDetails = () => {
       return;
     }
 
-    Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to add this product to your cart?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Add it!",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        const cartItem = {
-          productId: product._id,
-          name: product.name,
-          image: product.image,
-          price: product.discountPrice || product.price,
-          size: selectedSize,
-          quantity: parseInt(quantity),
-        };
-        try {
-          const res = await axiosSecure.post("/cart", cartItem);
-          if (res.status === 201) {
-            Swal.fire({
-              icon: "success",
-              title: "Product added to cart successfully",
-              timer: 2000,
-              showConfirmButton: false,
-            });
-          }
-        } catch (error) {
-          console.error("❌ Failed to add product to cart", error);
-          Swal.fire({
-            icon: "error",
-            title: "Something went wrong while adding to cart",
-          });
-        }
-      }
-    });
+    const productName = product.name;
+    const price = product.discountPrice || product.price;
+    const size = selectedSize;
+    const qty = quantity;
+    const imageUrl = product.image;
+
+    const message = 
+`🛍️ *New Order Enquiry* 🛍️
+
+*Product:* ${productName}
+*Price:* ৳${price}
+*Size:* ${size}
+*Quantity:* ${qty}
+
+✨ Please provide details on availability and payment options.
+
+👇 Product Image Preview:
+${imageUrl}
+
+Thank you! 🙏`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+    window.open(whatsappURL, "_blank");
   };
 
   if (loading) {
@@ -108,7 +91,10 @@ const ProductDetails = () => {
     );
   }
 
-  const discountAmount = product.price - (product.discountPrice || product.price);
+  const discountAmount = Math.max(
+    0,
+    product.price - (product.discountPrice || product.price)
+  );
 
   return (
     <div className="min-h-screen pt-29 px-4 md:px-20 bg-gradient-to-br from-purple-50 to-pink-50">

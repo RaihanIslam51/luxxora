@@ -6,85 +6,41 @@ import Swal from "sweetalert2";
 import useAxiosSesure from "../../../Hook/useAxiosSecure";
 import { FaTrashAlt } from "react-icons/fa";
 
+// Keep your existing CATEGORY_OPTIONS array here
+// ✅ Category Options
 const CATEGORY_OPTIONS = {
   MEN: {
-    Clothing: [
-      "T-shirt",
-      "Sweatshirt",
-      "Leather",
-      "Coats & Jackets",
-      "Knitwear",
-      "Denim",
-      "Short",
-      "Swimwear",
-      "Underwear & Socks",
-    ],
-    Shoes: [
-      "Sneakers",
-      "Out of Office",
-      "Be Right Back",
-      "Vulcanized",
-      "Boots",
-      "Formal Shoes",
-      "Loafers",
-      "Slides",
-    ],
+    Clothing: ["T-shirt", "Sweatshirt", "Leather", "Coats & Jackets", "Knitwear", "Denim", "Short", "Swimwear", "Underwear & Socks"],
+    Shoes: ["Sneakers", "Out of Office", "Be Right Back", "Vulcanized", "Boots", "Formal Shoes", "Loafers", "Slides"],
     Bags: ["Backpack", "Crossbody Bag", "Tote Bag", "Waist Bags and Clutches"],
     Accessories: ["Wallet and Cardholders", "Hats and Scarves", "Other Accessories"],
-    Jewelry: ["Bracelets", "Necklaces", "Rings", "Earrings"],
+    Jewelry: ["Bracelets", "Necklaces", "Rings", "Earrings"]
   },
   WOMEN: {
     Activewear: ["Tops & Bras", "Leggings"],
-    Clothing: [
-      "T-Shirts & Tops",
-      "Knitwear",
-      "Sweatshirt",
-      "Dresses",
-      "Coats & Jackets",
-      "Leather",
-      "Denim",
-      "Pants",
-      "Shirts",
-      "Swimwear",
-      "Underwear & Socks",
-      "Skirts",
-      "Sweaters",
-    ],
-    Shoes: [
-      "Sneakers",
-      "Out of Office",
-      "Be Right Back",
-      "Vulcanized",
-      "Boots and Ankle Boots",
-      "Heels",
-      "Flats",
-      "Mules and Pumps",
-      "Sandals",
-      "Loafer and Flat Shoes",
-      "Sliders and Espadrillas",
-    ],
+    Clothing: ["T-Shirts & Tops", "Knitwear", "Sweatshirt", "Dresses", "Coats & Jackets", "Leather", "Denim", "Pants", "Shirts","Swimwear", "Underwear & Socks", "Skirts", "Sweaters"],
+    Shoes: ["Sneakers", "Out of Office", "Be Right Back", "Vulcanized", "Boots and Ankle Boots", "Heels", "Flats", "Mules and Pumps", "Sandals", "Loafer and Flat Shoes", "Sliders and Espadrillas"],
     Bags: ["Clutches and Pouches", "Tote Bags", "Top Hand Bags", "Shoulder Bag"],
     Accessories: ["Wallet and Cardholders", "Soft Accessories", "Belts"],
-    Jewelry: ["Earrings", "Bracelets", "Necklaces", "Rings"],
+    Jewelry: ["Earrings", "Bracelets", "Necklaces", "Rings"]
   },
   KID: {
     Boys: ["Boy's Clothing", "Boy's Shoes", "Boy's Accessories"],
     Girls: ["Girl's Clothing", "Girl's Shoes", "Girl's Accessories"],
-    Baby: ["Baby Clothing"],
+    Baby: ["Baby Clothing"]
   },
   EYEWEAR: {
-    Types: ["Sunglasses", "Eyeglass"],
+    Types: ["Sunglasses", "Eyeglass"]
   },
   ICONS: {
-    Types: ["Women's Icons", "Men's Icons"],
+    Types: ["Women's Icons", "Men's Icons"]
   },
   "Special Collection": {
-    Seasons: ["Fall", "Winter", "Fresco"],
-  },
+    Seasons: ["Fall", "Winter", "Fresco"]
+  }
 };
 
 const IMG_API_KEY = "36f47c5ee620bb292f8a6a4a24adb091";
-
 const PRODUCTS_PER_PAGE = 10;
 
 const Product = () => {
@@ -95,16 +51,12 @@ const Product = () => {
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
 
-  // For showing products table & data
   const [allProducts, setAllProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [showProductsTable, setShowProductsTable] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Category filter for product list table
   const [filterCategory, setFilterCategory] = useState("All");
 
   const handleCategoryChange = (e) => {
@@ -118,7 +70,6 @@ const Product = () => {
     setSelectedType("");
   };
 
-  // Add product form submit
   const onSubmit = async (data) => {
     if (!selectedCategory || !selectedSubCategory || !selectedType) {
       return Swal.fire({
@@ -158,16 +109,22 @@ const Product = () => {
       });
     }
 
+    const price = parseFloat(data.price);
+    const discount = parseFloat(data.discount) || 0;
+    const discountPrice = price - (price * discount) / 100;
+
     const productData = {
       name: data.name,
-      price: parseFloat(data.price),
+      price,
       quantity: parseInt(data.quantity),
       image: imageUrl,
       category: selectedCategory,
       subCategory: selectedSubCategory,
       type: selectedType,
-      discountPrice: 2000,
-      discount: "50%",
+      discount,
+      discountPrice,
+      description: data.description || "",
+      details: data.details || "",
     };
 
     try {
@@ -199,7 +156,6 @@ const Product = () => {
     }
   };
 
-  // Fetch all products on button click
   const handleSeeAllProducts = async () => {
     try {
       const res = await axiosSecure.get("/products");
@@ -212,7 +168,6 @@ const Product = () => {
     }
   };
 
-  // Delete product by id
   const handleDeleteProduct = async (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -228,8 +183,11 @@ const Product = () => {
           await axiosSecure.delete(`/products/${id}`);
           setAllProducts((prev) => prev.filter((product) => product._id !== id));
           Swal.fire("Deleted!", "Product has been deleted.", "success");
-          // Reset page if last item deleted on current page
-          if ((filteredProducts.length - 1) <= (currentPage - 1) * PRODUCTS_PER_PAGE && currentPage > 1) {
+          if (
+            filteredProducts.length - 1 <=
+              (currentPage - 1) * PRODUCTS_PER_PAGE &&
+            currentPage > 1
+          ) {
             setCurrentPage(currentPage - 1);
           }
         } catch {
@@ -239,17 +197,15 @@ const Product = () => {
     });
   };
 
-  // Filter products by filterCategory
   useEffect(() => {
     if (filterCategory === "All") {
       setFilteredProducts(allProducts);
     } else {
       setFilteredProducts(allProducts.filter((p) => p.category === filterCategory));
     }
-    setCurrentPage(1); // reset to first page on filter change
+    setCurrentPage(1);
   }, [filterCategory, allProducts]);
 
-  // Pagination helpers
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
   const startIdx = (currentPage - 1) * PRODUCTS_PER_PAGE;
   const currentProducts = filteredProducts.slice(startIdx, startIdx + PRODUCTS_PER_PAGE);
@@ -294,7 +250,7 @@ const Product = () => {
             register={register("type")}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <InputField
               icon={<Image className="w-5 h-5 text-blue-500" />}
               label="Upload Image"
@@ -326,6 +282,32 @@ const Product = () => {
               placeholder="Enter quantity"
               register={register}
             />
+            <InputField
+              icon={<Tag className="w-5 h-5 text-red-500" />}
+              label="Discount (%)"
+              name="discount"
+              type="number"
+              placeholder="Enter discount percentage"
+              register={register}
+            />
+          </div>
+
+          <InputField
+            icon={<Package className="w-5 h-5 text-indigo-500" />}
+            label="Description"
+            name="description"
+            type="text"
+            placeholder="Enter short description"
+            register={register}
+          />
+
+          <div className="relative">
+            <label className="block text-white text-sm font-medium mb-2">Details</label>
+            <textarea
+              {...register("details")}
+              placeholder="Enter detailed information"
+              className="w-full p-3 rounded-lg focus:outline-none resize-y min-h-[100px]"
+            />
           </div>
 
           <motion.button
@@ -354,7 +336,6 @@ const Product = () => {
       {showProductsTable && (
         <div className="mt-6 overflow-x-auto max-w-7xl mx-auto px-4 w-full">
           <div className="flex justify-between items-center mb-4">
-            {/* Category Filter */}
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
@@ -366,7 +347,6 @@ const Product = () => {
               <option value="KID">KID</option>
             </select>
 
-            {/* Pagination Controls */}
             <div className="flex items-center gap-3">
               <button
                 disabled={currentPage === 1}
@@ -391,22 +371,26 @@ const Product = () => {
           {filteredProducts.length === 0 ? (
             <p className="text-center text-gray-600 mt-4">No products found.</p>
           ) : (
-            <table className="w-full border border-gray-300 rounded-lg shadow-sm">
+            <table className="w-full border border-gray-300 rounded-lg shadow-sm text-sm">
               <thead>
-                <tr className="bg-gray-100 text-left text-gray-700 uppercase text-sm">
+                <tr className="bg-gray-100 text-left text-gray-700 uppercase">
                   <th className="p-3">Image</th>
                   <th className="p-3">Name</th>
                   <th className="p-3">Category</th>
                   <th className="p-3">Sub-Category</th>
                   <th className="p-3">Type</th>
                   <th className="p-3">Price ($)</th>
+                  <th className="p-3">Discount (%)</th>
+                  <th className="p-3">Discount Price ($)</th>
                   <th className="p-3">Quantity</th>
+                  <th className="p-3">Description</th>
+                  <th className="p-3">Details</th>
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentProducts.map((product) => (
-                  <tr key={product._id} className="border-t hover:bg-gray-50">
+                  <tr key={product._id} className="border-t hover:bg-gray-50 align-top">
                     <td className="p-2">
                       <img
                         src={product.image}
@@ -418,12 +402,12 @@ const Product = () => {
                     <td className="p-3">{product.category}</td>
                     <td className="p-3">{product.subCategory}</td>
                     <td className="p-3">{product.type}</td>
-                    <td className="p-3">
-                      {product.price !== undefined && product.price !== null
-                        ? Number(product.price).toFixed(2)
-                        : "N/A"}
-                    </td>
+                    <td className="p-3">{product.price?.toFixed(2) ?? "N/A"}</td>
+                    <td className="p-3">{product.discount?.toFixed(2) ?? "0.00"}</td>
+                    <td className="p-3">{product.discountPrice?.toFixed(2) ?? "N/A"}</td>
                     <td className="p-3">{product.quantity}</td>
+                    <td className="p-3 max-w-xs break-words">{product.description ?? "-"}</td>
+                    <td className="p-3 max-w-xs break-words whitespace-pre-wrap">{product.details ?? "-"}</td>
                     <td className="p-3 text-center">
                       <button
                         onClick={() => handleDeleteProduct(product._id)}
@@ -472,7 +456,7 @@ const BeautifulSelect = ({ label, icon, options, value, onChange, register }) =>
       >
         <option value="">-- Select {label} --</option>
         {options.map((opt) => (
-          <option key={opt} value={opt} className="text-gray-700 font-semibold">
+          <option key={opt} value={opt}>
             {opt}
           </option>
         ))}
