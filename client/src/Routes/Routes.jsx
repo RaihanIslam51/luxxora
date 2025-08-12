@@ -110,6 +110,8 @@ import Cart from "../Pages/Cart/Cart";
 import WishList from "../Pages/WishList/WishList";
 import ProductDetails from "../Pages/Men/Products-Details/ProductDetails";
 import Banner from "../Pages/Admin/Banner/Banner";
+import ShirtsM from "../Pages/Men/Clothing/ShirtsM";
+import PantsM from "../Pages/Men/Clothing/PantsM";
 
 
 export const router = createBrowserRouter([
@@ -144,6 +146,8 @@ export const router = createBrowserRouter([
       {path:"/wishlist",Component:WishList},
 
       // Men
+      {path:"/men/clothing/shirt",Component:ShirtsM},
+      {path:"/men/clothing/pant",Component:PantsM},
       { path: "/men/clothing/tshirt", Component:Tshirt },
       { path: "/men/clothing/sweatshirt",Component:Sweatshirt},
       { path: "/men/clothing/leather", Component:Leather },

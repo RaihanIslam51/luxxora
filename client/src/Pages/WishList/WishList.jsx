@@ -9,25 +9,29 @@ const WishList = () => {
 
   useEffect(() => {
     const email = UserData?.email;
+
+    // Wait until UserData is loaded
+    if (UserData === undefined) return;
+
     if (!email) {
       setError("User email not found. Please log in.");
       setLoading(false);
       return;
     }
-    console.log("wishlist", email);
-    
 
     const fetchWishlist = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/wishlist?email=${encodeURIComponent(email)}`);
+        const response = await fetch(
+          `/api/wishlist?email=${encodeURIComponent(email)}`
+        );
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        setWishlistItems(data);
+        setWishlistItems(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "Failed to load wishlist");
       } finally {
         setLoading(false);
       }
@@ -52,7 +56,7 @@ const WishList = () => {
     );
   }
 
-  if (wishlistItems.length === 0) {
+  if (!wishlistItems.length) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500 text-xl">
         Your wishlist is empty 😔

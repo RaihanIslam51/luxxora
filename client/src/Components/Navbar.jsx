@@ -14,8 +14,6 @@ import { Link } from "react-router-dom";
 import useAxiosSecure from "../Hook/useAxiosSecure";
 import { AuthContext } from "../Authantation/Context/AuthContext";
 
-
-
 const menuItems = [
   {
     name: "SALES",
@@ -36,6 +34,8 @@ const menuItems = [
         path: "/men/clothing",
         subsubmenu: [
           { name: "T-shirt", path: "/men/clothing/tshirt" },
+          { name: "Shirt", path: "/men/clothing/shirt" },
+          { name: "Pant", path: "/men/clothing/pant" },
           { name: "Sweatshirt", path: "/men/clothing/sweatshirt" },
           { name: "Leather", path: "/men/clothing/leather" },
           { name: "Coats & Jackets", path: "/men/clothing/coats-jackets" },
@@ -117,7 +117,7 @@ const menuItems = [
           { name: "Knitwear", path: "/women/clothing/Knitwear" },
           { name: "Sweatshirts", path: "/women/clothing/Sweatshirts" },
           { name: "Dresses", path: "/women/clothing/Dresses" },
-          { name: "Cots & Jackets", path: "/women/clothing/Cots&Jackets" },
+          { name: "Coat & Jackets", path: "/women/clothing/Cots&Jackets" },
           { name: "Leather", path: "/women/clothing/Leather" },
           { name: "Denim", path: "/women/clothing/Denim" },
           { name: "Pants", path: "/women/clothing/Pants" },
@@ -222,7 +222,6 @@ const menuItems = [
     submenu: [
       { name: "Men's Icon", path: "/icons/men" },
       { name: "Women's Icon", path: "/icons/women" },
-      
     ],
   },
   {
@@ -234,52 +233,59 @@ const menuItems = [
       { name: "Fresco", path: "/special-collection/fresco" },
     ],
   },
-  {
-    name: "ADMIN",
-    path: "/admin",
-    submenu: [
-      { name: "Banner", path: "/admin/banner" },
-      { name: "Product", path: "/admin/product" },
-    ],
-  },
   { name: "BRAND", path: "/brand" },
   { name: "Login", path: "/login" },
   { name: "Wishlist", path: "/wishlist" },
 ];
 
 const Navbar = () => {
-  const {UserData,SignOutUser}=useContext (AuthContext)
-    useEffect(() => {
+  const { UserData, SignOutUser } = useContext(AuthContext);
+  
+  // Create menu based on user role
+  const getMenuItems = () => {
+    const baseMenu = [...menuItems];
+    if (UserData?.email === "mdraihan51674@gmail.com") {
+      baseMenu.push({
+        name: "ADMIN",
+        path: "/admin",
+        submenu: [
+          { name: "Banner", path: "/admin/banner" },
+          { name: "Product", path: "/admin/product" },
+        ],
+      });
+    }
+    return baseMenu;
+  };
+
+  useEffect(() => {
     if (UserData?.email) {
       console.log("User Email:", UserData.email);
     }
   }, [UserData]);
-  
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeMenuIndex, setActiveMenuIndex] = useState(null);
   const [activeSubmenuIndex, setActiveSubmenuIndex] = useState(null);
   const axiosSecure = useAxiosSecure();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-   const [hideSearch, setHideSearch] = useState(false);
-   const [showLogout, setShowLogout] = useState(false);
+  const [hideSearch, setHideSearch] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
 
-
-    // ✅ Scroll detection
+  // Scroll detection
   useEffect(() => {
     let lastScrollY = 0;
     const handleScroll = () => {
       if (window.scrollY > lastScrollY && window.scrollY > 80) {
-        setHideSearch(true); // স্ক্রল করলে লুকাবে
+        setHideSearch(true); // Hide on scroll down
       } else {
-        setHideSearch(false); // উপরে গেলে আবার দেখাবে
+        setHideSearch(false); // Show on scroll up
       }
       lastScrollY = window.scrollY;
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -296,7 +302,6 @@ const Navbar = () => {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, axiosSecure]);
 
-    // ✅ Logout
   const handleLogout = async () => {
     try {
       await SignOutUser();
@@ -329,11 +334,12 @@ const Navbar = () => {
       <nav className="w-full bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-md font-sans tracking-wide z-20 fixed top-0 left-0">
         <div className="h-16 flex items-center justify-between px-6 sm:px-10">
           {/* Logo */}
-          <Link
-            to="/"
-            className="text-3xl sm:text-4xl text-gray-900 tracking-widest font-semibold select-none drop-shadow-sm hover:scale-105 transition-transform duration-300"
-          >
-            Luxxora
+          <Link to="/">
+            <img
+              src="/Luxxora.png"
+              alt="Luxxora Logo"
+              className="h-10 sm:h-12 object-contain select-none drop-shadow-sm hover:scale-105 transition-transform duration-300"
+            />
           </Link>
 
           {/* Action Icons */}
@@ -342,9 +348,7 @@ const Navbar = () => {
               <Heart className="w-7 h-7 group-hover:text-red-500 transition duration-300" />
             </Link>
 
-
-
-          {UserData ? (
+            {UserData ? (
               <div
                 className="relative group"
                 onMouseEnter={() => setShowLogout(true)}
@@ -361,7 +365,7 @@ const Navbar = () => {
                 {showLogout && (
                   <button
                     onClick={handleLogout}
-                   className="absolute -top-2 bg-red-500 text-white text-sm px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition-all"
+                    className="absolute -top-2 bg-red-500 text-white text-sm px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition-all"
                   >
                     Logout
                   </button>
@@ -373,12 +377,8 @@ const Navbar = () => {
               </Link>
             )}
 
-
-
-
             <Link to="/cart" title="Cart" className="relative group">
               <ShoppingCart className="w-7 h-7 group-hover:text-green-500 transition duration-300" />
-              <span className="absolute -top-1 -right-2 bg-black text-white text-xs px-1.5 rounded-full">3</span>
             </Link>
             <button
               title="Menu"
@@ -391,7 +391,7 @@ const Navbar = () => {
         </div>
 
         {/* Search Bar */}
-           <div
+        <div
           className={`hidden md:flex justify-start px-6 pb-3 transition-all duration-500 ${
             hideSearch ? "opacity-0 -translate-y-5 h-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto"
           }`}
@@ -421,7 +421,7 @@ const Navbar = () => {
           {/* Top-level Menu */}
           {!activeMenuIndex && (
             <div className={`${slideBase} animate-slideInFromRight`}>
-              {menuItems.map((item, index) => (
+              {getMenuItems().map((item, index) => (
                 <button
                   key={index}
                   onClick={() => {
@@ -451,12 +451,12 @@ const Navbar = () => {
                 <ArrowLeft className="w-6 h-6" />
                 <span>Back</span>
               </button>
-              {menuItems[activeMenuIndex].submenu.map((sub, subIdx) => (
+              {getMenuItems()[activeMenuIndex].submenu.map((sub, subIdx) => (
                 <div key={subIdx}>
                   {sub.subsubmenu ? (
                     <button
                       onClick={() => setActiveSubmenuIndex(subIdx)}
-                      className="w-full flex justify-between text-xl  items-center px-6 py-5 text-black font-normal hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
+                      className="w-full flex justify-between text-xl items-center px-6 py-5 text-black font-normal hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
                     >
                       {sub.name}
                       <ChevronDown className="w-4 h-4 opacity-70" />
@@ -485,7 +485,7 @@ const Navbar = () => {
                 <ArrowLeft className="w-6 h-6" />
                 <span>Back</span>
               </button>
-              {menuItems[activeMenuIndex].submenu[activeSubmenuIndex].subsubmenu.map(
+              {getMenuItems()[activeMenuIndex].submenu[activeSubmenuIndex].subsubmenu.map(
                 (subsub, subsubIdx) => (
                   <Link
                     key={subsubIdx}

@@ -1,7 +1,6 @@
-// ✅ Category Options
 const CATEGORY_OPTIONS = {
   MEN: {
-    Clothing: ["T-shirt", "Sweatshirt", "Leather", "Coats & Jackets", "Knitwear", "Denim", "Short", "Swimwear", "Underwear & Socks"],
+    Clothing: ["T-shirt","Shirt","Pant", "Sweatshirt", "Leather", "Coats & Jackets", "Knitwear", "Denim", "Short", "Swimwear", "Underwear & Socks"],
     Shoes: ["Sneakers", "Out of Office", "Be Right Back", "Vulcanized", "Boots", "Formal Shoes", "Loafers", "Slides"],
     Bags: ["Backpack", "Crossbody Bag", "Tote Bag", "Waist Bags and Clutches"],
     Accessories: ["Wallet and Cardholders", "Hats and Scarves", "Other Accessories"],
@@ -24,6 +23,7 @@ const CATEGORY_OPTIONS = {
     Types: ["Sunglasses", "Eyeglass"]
   },
   ICONS: {
+
     Types: ["Women's Icons", "Men's Icons"]
   },
   "Special Collection": {

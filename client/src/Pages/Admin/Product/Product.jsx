@@ -7,10 +7,9 @@ import useAxiosSesure from "../../../Hook/useAxiosSecure";
 import { FaTrashAlt } from "react-icons/fa";
 
 // Keep your existing CATEGORY_OPTIONS array here
-// ✅ Category Options
 const CATEGORY_OPTIONS = {
   MEN: {
-    Clothing: ["T-shirt", "Sweatshirt", "Leather", "Coats & Jackets", "Knitwear", "Denim", "Short", "Swimwear", "Underwear & Socks"],
+    Clothing: ["T-shirt","Shirt","Pant", "Sweatshirt", "Leather", "Coats & Jackets", "Knitwear", "Denim", "Short", "Swimwear", "Underwear & Socks"],
     Shoes: ["Sneakers", "Out of Office", "Be Right Back", "Vulcanized", "Boots", "Formal Shoes", "Loafers", "Slides"],
     Bags: ["Backpack", "Crossbody Bag", "Tote Bag", "Waist Bags and Clutches"],
     Accessories: ["Wallet and Cardholders", "Hats and Scarves", "Other Accessories"],
@@ -33,6 +32,7 @@ const CATEGORY_OPTIONS = {
     Types: ["Sunglasses", "Eyeglass"]
   },
   ICONS: {
+
     Types: ["Women's Icons", "Men's Icons"]
   },
   "Special Collection": {
@@ -209,6 +209,12 @@ const Product = () => {
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
   const startIdx = (currentPage - 1) * PRODUCTS_PER_PAGE;
   const currentProducts = filteredProducts.slice(startIdx, startIdx + PRODUCTS_PER_PAGE);
+
+  // Helper function to safely format number with fallback
+  const formatNumber = (value, decimals = 2, fallback = "N/A") => {
+    const num = Number(value);
+    return !isNaN(num) ? num.toFixed(decimals) : fallback;
+  };
 
   return (
     <div className="min-h-screen pt-25 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-300 flex flex-col items-center p-6">
@@ -402,9 +408,9 @@ const Product = () => {
                     <td className="p-3">{product.category}</td>
                     <td className="p-3">{product.subCategory}</td>
                     <td className="p-3">{product.type}</td>
-                    <td className="p-3">{product.price?.toFixed(2) ?? "N/A"}</td>
-                    <td className="p-3">{product.discount?.toFixed(2) ?? "0.00"}</td>
-                    <td className="p-3">{product.discountPrice?.toFixed(2) ?? "N/A"}</td>
+                    <td className="p-3">{formatNumber(product.price, 2, "N/A")}</td>
+                    <td className="p-3">{formatNumber(product.discount, 2, "0.00")}</td>
+                    <td className="p-3">{formatNumber(product.discountPrice, 2, "N/A")}</td>
                     <td className="p-3">{product.quantity}</td>
                     <td className="p-3 max-w-xs break-words">{product.description ?? "-"}</td>
                     <td className="p-3 max-w-xs break-words whitespace-pre-wrap">{product.details ?? "-"}</td>
@@ -446,15 +452,15 @@ const InputField = ({ label, name, register, type = "text", placeholder, icon })
 const BeautifulSelect = ({ label, icon, options, value, onChange, register }) => (
   <div className="relative">
     <label className="block text-white text-sm font-medium mb-2">{label}</label>
-    <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-pink-400 transition-all">
+    <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-purple-400 transition-all">
       <span className="pl-3">{icon}</span>
       <select
         {...register}
         value={value}
         onChange={onChange}
-        className="w-full p-3 pl-2 rounded-lg focus:outline-none bg-white font-semibold text-gray-700 hover:bg-purple-50 transition"
+        className="w-full p-3 pl-2 rounded-lg focus:outline-none cursor-pointer"
       >
-        <option value="">-- Select {label} --</option>
+        <option value="">Select {label}</option>
         {options.map((opt) => (
           <option key={opt} value={opt}>
             {opt}
