@@ -2,27 +2,31 @@
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useQuery } from "@tanstack/react-query";
-import useAxiosSesure from "../../Hook/useAxiosSecure";
+import useAxiosSecure from "../../Hook/useAxiosSecure";
 import ProductCard from "../ProductCard/ProductCard";
 import Loader from "../Loader/Loader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import useAuth from "../../Hook/useAuth";
 
 const ProductList = ({ category, subCategory, type }) => {
-  const axiosSecure = useAxiosSesure();
+  const axiosSecure = useAxiosSecure();
   const navigate = useNavigate();
+  const { UserData } = useAuth();
 
   const [wishlist, setWishlist] = useState(() => {
     const saved = localStorage.getItem("wishlist");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // ✅ Fetch products with TanStack Query
-  const {
-    data: products = [],
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const [loadingDetail, setLoadingDetail] = useState(false); // Loader for card click
+
+  // Persist wishlist in localStorage
+  useEffect(() => {
+    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  }, [wishlist]);
+
+  // Fetch products
+  const { data: products = [], isLoading, isError, error } = useQuery({
     queryKey: ["products", category, subCategory, type],
     queryFn: async () => {
       const res = await axiosSecure.get("/products/filter", {
@@ -32,15 +36,27 @@ const ProductList = ({ category, subCategory, type }) => {
     },
   });
 
+  // Wishlist toggle
   const toggleWishlist = async (productId) => {
-    const isInWishlist = wishlist.includes(productId);
+    if (!UserData?.email) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Please login to manage wishlist",
+        showConfirmButton: false,
+        timer: 1500,
+        toast: true,
+        position: "top-end",
+      });
+    }
 
-    if (isInWishlist) {
-      try {
-        await axiosSecure.delete(`/api/wishlist/${productId}`);
-        const updatedWishlist = wishlist.filter((id) => id !== productId);
-        setWishlist(updatedWishlist);
-        localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
+    try {
+      const isInWishlist = wishlist.includes(productId);
+
+      if (isInWishlist) {
+        await axiosSecure.delete(`/api/wishlist/${productId}`, {
+          data: { email: UserData.email },
+        });
+        setWishlist(wishlist.filter((id) => id !== productId));
         Swal.fire({
           icon: "info",
           title: "Removed from wishlist",
@@ -49,16 +65,14 @@ const ProductList = ({ category, subCategory, type }) => {
           toast: true,
           position: "top-end",
         });
-      } catch (error) {
-        console.error("Error removing from wishlist:", error);
-      }
-    } else {
-      try {
-        const response = await axiosSecure.post("/api/wishlist", { productId });
+      } else {
+        const response = await axiosSecure.post("/api/wishlist", {
+          productId,
+          email: UserData.email,
+        });
+
         if (response.status === 201 || response.status === 200) {
-          const updatedWishlist = [...wishlist, productId];
-          setWishlist(updatedWishlist);
-          localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
+          setWishlist([...wishlist, productId]);
           Swal.fire({
             icon: "success",
             title: "Added to wishlist",
@@ -68,32 +82,38 @@ const ProductList = ({ category, subCategory, type }) => {
             position: "top-end",
           });
         }
-      } catch (error) {
-        console.error("Error adding to wishlist:", error);
       }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Something went wrong",
+        text: err.message,
+        showConfirmButton: true,
+      });
     }
   };
 
+  // Card click handler with loader
   const handleCardClick = (id) => {
-    navigate(`/product/${id}`);
+    setLoadingDetail(true); // show loader immediately
+    setTimeout(() => {
+      navigate(`/product/${id}`);
+    }, 250); // small delay for smooth UX
   };
 
-  // ✅ Handle loading state
-  if (isLoading) {
-    return <Loader />;
-  }
+  // Show loader if fetching products or navigating
+  if (isLoading || loadingDetail) return <Loader />;
 
-  // ✅ Handle error state
-  if (isError) {
+  if (isError)
     return (
       <p className="text-center text-red-500">
         Error loading products: {error.message}
       </p>
     );
-  }
 
   return (
-    <div className="pt-33 px-4 md:px-0 max-w-screen-2xl mx-auto">
+    <div className="pt-8 px-4 md:px-0 max-w-screen-2xl mx-auto">
       {products.length === 0 ? (
         <p className="text-center text-gray-500">No products available.</p>
       ) : (
@@ -103,8 +123,8 @@ const ProductList = ({ category, subCategory, type }) => {
               key={item._id}
               item={item}
               isWishlisted={wishlist.includes(item._id)}
-              onToggleWishlist={toggleWishlist}
-              onClick={handleCardClick}
+              onToggleWishlist={() => toggleWishlist(item._id)}
+              onClick={() => handleCardClick(item._id)}
             />
           ))}
         </div>

@@ -16,6 +16,12 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState("");
 
   useEffect(() => {
+  window.scrollTo(0, 0); // scroll to top on page load
+}, []);
+
+
+  useEffect(() => {
+     window.scrollTo(0, 0);
     const fetchProduct = async () => {
       try {
         const res = await axiosSecure.get(`/api/products/${id}`);
@@ -83,6 +89,7 @@ Thank you! 🙏`;
     );
   }
 
+  
   if (!product) {
     return (
       <div className="flex items-center justify-center h-screen text-red-600 text-xl">

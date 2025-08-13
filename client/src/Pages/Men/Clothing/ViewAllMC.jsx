@@ -9,11 +9,7 @@ import Swimwear from './Swimwear';
 import Tshirt from './Tshirt';
 import Underwear from './Underwear';
 
-const SectionTitle = ({ title }) => (
-  <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mt-10 mb-5 relative pl-4 border-l-4 border-green-600">
-    {title}
-  </h2>
-);
+
 
 const ViewAllMC = () => {
   return (
@@ -23,31 +19,30 @@ const ViewAllMC = () => {
       </h1>
 
       {/* Clothing Sections */}
-      <SectionTitle title="🧥 Coats & Jackets" />
+      
       <CoatsJackets />
 
-      <SectionTitle title="👖 Denim" />
+      
       <Denim />
 
-      <SectionTitle title="🧶 Knitwear" />
+   
       <Knitwear />
 
-      <SectionTitle title="🥼 Leather" />
       <Leather />
 
-      <SectionTitle title="🩳 Shorts" />
+     
       <Shorts />
 
-      <SectionTitle title="👕 Sweatshirt" />
+      
       <Sweatshirt />
 
-      <SectionTitle title="🏊 Swimwear" />
+      
       <Swimwear />
 
-      <SectionTitle title="👕 T-Shirts" />
+      
       <Tshirt />
 
-      <SectionTitle title="🩲 Underwear & Socks" />
+     
       <Underwear />
     </div>
   );

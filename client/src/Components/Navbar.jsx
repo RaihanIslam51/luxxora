@@ -13,6 +13,7 @@ import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import useAxiosSecure from "../Hook/useAxiosSecure";
 import { AuthContext } from "../Authantation/Context/AuthContext";
+import ProductCard from '../generic reusable component/ProductCard/ProductCard'
 
 const menuItems = [
   {
@@ -240,11 +241,11 @@ const menuItems = [
 
 const Navbar = () => {
   const { UserData, SignOutUser } = useContext(AuthContext);
-  
+
   // Create menu based on user role
   const getMenuItems = () => {
     const baseMenu = [...menuItems];
-    if (UserData?.email === "mdraihan51674@gmail.com") {
+    if (UserData?.email === "connect@luxxoraverse.com") {
       baseMenu.push({
         name: "ADMIN",
         path: "/admin",
@@ -334,7 +335,9 @@ const Navbar = () => {
       <nav className="w-full bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-md font-sans tracking-wide z-20 fixed top-0 left-0">
         <div className="h-16 flex items-center justify-between px-6 sm:px-10">
           {/* Logo */}
-          <Link to="/">
+          <Link to="/" onClick={() => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}>
             <img
               src="/Luxxora.png"
               alt="Luxxora Logo"
@@ -392,9 +395,8 @@ const Navbar = () => {
 
         {/* Search Bar */}
         <div
-          className={`hidden md:flex justify-start px-6 pb-3 transition-all duration-500 ${
-            hideSearch ? "opacity-0 -translate-y-5 h-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto"
-          }`}
+          className={`hidden md:flex justify-start px-6 pb-3 transition-all duration-500 ${hideSearch ? "opacity-0 -translate-y-5 h-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto"
+            }`}
         >
           <div className="relative w-full max-w-7xl">
             <input
@@ -411,6 +413,21 @@ const Navbar = () => {
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
               <Search className="w-7 h-7 opacity-70" />
             </span>
+            {/* Search Results Dropdown */}
+            {searchResults.length > 0 && (
+              <div className="absolute top-full left-0 w-full max-w-7xl mx-auto bg-white shadow-lg z-50 p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-h-[80vh] overflow-y-auto rounded-b-xl">
+                {searchResults.map((item) => (
+                  <ProductCard
+                    key={item._id}
+                    item={item}
+                    isWishlisted={false} // replace with actual wishlist logic
+                    onToggleWishlist={(id) => console.log("Wishlist toggle:", id)}
+                    onClick={(id) => console.log("Clicked product:", id)}
+                  />
+                ))}
+              </div>
+            )}
+
           </div>
         </div>
       </nav>

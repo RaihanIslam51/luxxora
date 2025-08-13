@@ -8,16 +8,16 @@ const ProductCard = ({ item, isWishlisted, onToggleWishlist, onClick }) => {
     <motion.div
       whileHover={{ scale: 1.03 }}
       transition={{ duration: 0.3 }}
-      onClick={() => onClick(item._id)}
-      className="relative flex flex-col rounded-xl p-4 bg-white text-center shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer group"
+      className="relative flex flex-col rounded-xl p-4 bg-white shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer group"
       style={{ minHeight: "34rem" }}
+      onClick={() => onClick(item._id)} // entire card clickable
     >
       {/* Wishlist icon */}
       <span
         className="absolute top-3 right-4 text-3xl cursor-pointer z-10 transition-transform duration-300 hover:scale-110"
         title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         onClick={(e) => {
-          e.stopPropagation();
+          e.stopPropagation(); // prevent card click when clicking heart
           onToggleWishlist(item._id);
         }}
       >

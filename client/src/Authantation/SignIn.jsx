@@ -1,5 +1,4 @@
 import { useContext, useRef } from "react";
-// import { Helmet } from "react-helmet";
 import toast from "react-hot-toast";
 import { Link, useLocation, useNavigate } from "react-router";
 import { AuthContext } from "./Context/AuthContext";
@@ -18,7 +17,7 @@ const SignIn = () => {
     SignInUser(email, password)
       .then(() => {
         toast.success("Login successful");
-        navigate(location?.state || "/");
+        navigate(location?.state?.from || "/");
       })
       .catch(() => {
         toast.error("Invalid email or password");
@@ -28,9 +27,8 @@ const SignIn = () => {
   const handleGoogleLogin = () => {
     GoogleLogin()
       .then((result) => {
-        console.log(result.user);
         toast.success("Login successful");
-        navigate(location?.state || "/");
+        navigate(location?.state?.from || "/");
       })
       .catch(() => {
         toast.error("Google login failed");
@@ -38,105 +36,100 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      {/* <Helmet>
-        <title>Login | Luxxora</title>
-        <meta name="description" content="Sign in to your Luxxora account" />
-      </Helmet> */}
-
-      {/* Left Side - Visible only on medium+ screens */}
-      <div className="hidden md:flex md:w-1/2 pt-20 relative bg-green-100">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-r from-gray-100 via-white to-gray-100">
+      {/* Left side with image & branding (hidden on small screens) */}
+      <div className="hidden md:flex md:w-1/2 relative">
         <img
           src="/MEN.png"
           alt="Ecommerce banner"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-r-3xl"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/20 flex flex-col justify-end p-6 md:p-10 text-white">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">
-            Welcome to Luxxora
-          </h2>
-          <p className="mt-2 text-xs sm:text-sm text-gray-200 max-w-sm">
-            Premium products, handpicked for you. Sign in to shop smarter.
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent flex flex-col justify-end p-12 rounded-r-3xl">
+          <h1 className="text-white text-4xl font-extrabold mb-3">Welcome to Luxxora</h1>
+          <p className="text-gray-300 max-w-xs leading-relaxed">
+            Premium products, handpicked for you. Sign in to shop smarter and elevate your style.
           </p>
         </div>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-tr from-green-50 via-emerald-100 to-lime-100 p-4 sm:p-6">
-        <div className="bg-white/90 shadow-xl rounded-3xl p-6 sm:p-8 w-full max-w-md border border-green-100">
-          <div className="text-center mb-6">
+      {/* Right side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8 sm:p-12">
+        <div className="bg-white shadow-2xl rounded-3xl max-w-md w-full p-8 sm:p-12">
+          <div className="text-center mb-10">
             <img
               src="/Luxxora.png"
               alt="Luxxora Logo"
-              className="w-14 sm:w-16 mx-auto mb-2"
+              className="mx-auto w-16 sm:w-20 mb-4"
             />
-            <h2 className="text-lg sm:text-2xl font-extrabold text-emerald-700">
-              Welcome Back
-            </h2>
-            <p className="text-xs sm:text-sm text-green-700">
+            <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome Back</h2>
+            <p className="text-gray-600 text-sm sm:text-base">
               Sign in to continue your shopping journey
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-green-800">
-                Email
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
               </label>
               <input
                 ref={emailRef}
                 type="email"
                 name="email"
+                id="email"
+                autoComplete="email"
                 required
-                placeholder="Enter your email"
-                className="w-full mt-1 px-3 py-2 sm:px-4 sm:py-2 border border-green-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-green-50/60 placeholder-green-400 text-sm sm:text-base"
+                placeholder="you@example.com"
+                className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-black focus:ring-2 focus:ring-black"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-semibold text-green-800">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
               <input
                 type="password"
                 name="password"
+                id="password"
+                autoComplete="current-password"
                 required
                 placeholder="Enter your password"
-                className="w-full mt-1 px-3 py-2 sm:px-4 sm:py-2 border border-green-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-green-50/60 placeholder-green-400 text-sm sm:text-base"
+                className="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-black focus:ring-2 focus:ring-black"
               />
             </div>
+
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 via-lime-400 to-green-400 hover:from-green-500 hover:to-emerald-600 text-white font-bold py-2 rounded-xl shadow-lg transition-all duration-200 text-sm sm:text-base"
+              className="w-full bg-black text-white font-bold py-3 rounded-xl shadow-lg hover:bg-gray-900 transition"
             >
               Login
             </button>
           </form>
 
-          <div className="my-6 flex items-center justify-center gap-2 text-sm text-green-600">
-            <span className="w-1/4 h-px bg-green-200"></span>
-            OR
-            <span className="w-1/4 h-px bg-green-200"></span>
+          <div className="flex items-center my-8">
+            <hr className="flex-grow border-gray-300" />
+            <span className="mx-4 text-gray-500 font-semibold">OR</span>
+            <hr className="flex-grow border-gray-300" />
           </div>
 
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 sm:gap-3 border border-green-200 rounded-xl py-2 bg-green-50 hover:bg-green-100 transition text-sm sm:text-base"
+            className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-xl py-3 bg-white hover:bg-gray-50 transition text-gray-800 font-semibold"
           >
             <img
               src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="Google"
-              className="w-4 h-4 sm:w-5 sm:h-5"
+              alt="Google logo"
+              className="w-6 h-6"
             />
-            <span className="font-semibold text-green-700">
-              Continue with Google
-            </span>
+            Continue with Google
           </button>
 
-          <p className="text-xs sm:text-sm text-center mt-6 text-green-700">
+          <p className="mt-8 text-center text-gray-600 text-sm">
             New user?{" "}
             <Link
               to="/auth/register"
-              className="text-emerald-600 underline hover:underline font-bold"
+              className="text-black underline font-semibold hover:text-gray-700"
             >
               Create an account
             </Link>

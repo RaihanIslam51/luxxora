@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import useAxiosSesure from "../../../Hook/useAxiosSecure";
 import { FaTrashAlt } from "react-icons/fa";
 
-// Keep your existing CATEGORY_OPTIONS array here
+// Make sure CATEGORY_OPTIONS is defined or imported here...
 const CATEGORY_OPTIONS = {
   MEN: {
     Clothing: ["T-shirt","Shirt","Pant", "Sweatshirt", "Leather", "Coats & Jackets", "Knitwear", "Denim", "Short", "Swimwear", "Underwear & Socks"],
@@ -58,6 +58,7 @@ const Product = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filterCategory, setFilterCategory] = useState("All");
+    const [loadingProducts, setLoadingProducts] = useState(false);
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
@@ -134,7 +135,7 @@ const Product = () => {
           icon: "success",
           title: "Product Added!",
           text: "Your product has been successfully added to the database.",
-          confirmButtonColor: "#6d28d9",
+          confirmButtonColor: "#000000",
         });
         reset();
         setSelectedCategory("");
@@ -149,7 +150,7 @@ const Product = () => {
         icon: "error",
         title: "Failed to Add!",
         text: "Something went wrong while adding the product.",
-        confirmButtonColor: "#e11d48",
+        confirmButtonColor: "#b91c1c",
       });
     } finally {
       setLoadingSubmit(false);
@@ -157,6 +158,7 @@ const Product = () => {
   };
 
   const handleSeeAllProducts = async () => {
+    setLoadingProducts(true); 
     try {
       const res = await axiosSecure.get("/products");
       setAllProducts(res.data);
@@ -165,6 +167,9 @@ const Product = () => {
       setCurrentPage(1);
     } catch (error) {
       Swal.fire("Error", "Failed to fetch products!", "error");
+    }
+     finally {
+      setLoadingProducts(false); 
     }
   };
 
@@ -184,8 +189,7 @@ const Product = () => {
           setAllProducts((prev) => prev.filter((product) => product._id !== id));
           Swal.fire("Deleted!", "Product has been deleted.", "success");
           if (
-            filteredProducts.length - 1 <=
-              (currentPage - 1) * PRODUCTS_PER_PAGE &&
+            filteredProducts.length - 1 <= (currentPage - 1) * PRODUCTS_PER_PAGE &&
             currentPage > 1
           ) {
             setCurrentPage(currentPage - 1);
@@ -210,28 +214,27 @@ const Product = () => {
   const startIdx = (currentPage - 1) * PRODUCTS_PER_PAGE;
   const currentProducts = filteredProducts.slice(startIdx, startIdx + PRODUCTS_PER_PAGE);
 
-  // Helper function to safely format number with fallback
   const formatNumber = (value, decimals = 2, fallback = "N/A") => {
     const num = Number(value);
     return !isNaN(num) ? num.toFixed(decimals) : fallback;
   };
 
   return (
-    <div className="min-h-screen pt-25 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-300 flex flex-col items-center p-6">
+    <div className="min-h-screen pt-25 bg-white flex flex-col items-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-3xl bg-white/30 backdrop-blur-xl shadow-2xl rounded-2xl p-8 border border-white/20"
+        className="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-8 border border-gray-300"
       >
-        <h2 className="text-3xl font-extrabold mb-6 text-white flex items-center gap-3">
-          <Package className="text-yellow-200 w-8 h-8" /> Add New Product
+        <h2 className="text-3xl font-extrabold mb-6 text-black flex items-center gap-3">
+          <Package className="text-black w-8 h-8" /> Add New Product
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <BeautifulSelect
             label="Category"
-            icon={<Layers className="w-5 h-5 text-purple-600" />}
+            icon={<Layers className="w-5 h-5 text-black" />}
             options={Object.keys(CATEGORY_OPTIONS)}
             value={selectedCategory}
             onChange={handleCategoryChange}
@@ -240,7 +243,7 @@ const Product = () => {
 
           <BeautifulSelect
             label="Sub Category"
-            icon={<Tag className="w-5 h-5 text-pink-600" />}
+            icon={<Tag className="w-5 h-5 text-black" />}
             options={selectedCategory ? Object.keys(CATEGORY_OPTIONS[selectedCategory]) : []}
             value={selectedSubCategory}
             onChange={handleSubCategoryChange}
@@ -249,7 +252,7 @@ const Product = () => {
 
           <BeautifulSelect
             label="Type"
-            icon={<Layers className="w-5 h-5 text-orange-600" />}
+            icon={<Layers className="w-5 h-5 text-black" />}
             options={selectedSubCategory ? CATEGORY_OPTIONS[selectedCategory][selectedSubCategory] : []}
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
@@ -258,7 +261,7 @@ const Product = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <InputField
-              icon={<Image className="w-5 h-5 text-blue-500" />}
+              icon={<Image className="w-5 h-5 text-black" />}
               label="Upload Image"
               name="image"
               type="file"
@@ -266,14 +269,14 @@ const Product = () => {
               register={register}
             />
             <InputField
-              icon={<Package className="w-5 h-5 text-green-500" />}
+              icon={<Package className="w-5 h-5 text-black" />}
               label="Product Name"
               name="name"
               placeholder="Enter product name"
               register={register}
             />
             <InputField
-              icon={<DollarSign className="w-5 h-5 text-yellow-500" />}
+              icon={<DollarSign className="w-5 h-5 text-black" />}
               label="Price ($)"
               name="price"
               type="number"
@@ -281,7 +284,7 @@ const Product = () => {
               register={register}
             />
             <InputField
-              icon={<Hash className="w-5 h-5 text-red-500" />}
+              icon={<Hash className="w-5 h-5 text-black" />}
               label="Quantity"
               name="quantity"
               type="number"
@@ -289,7 +292,7 @@ const Product = () => {
               register={register}
             />
             <InputField
-              icon={<Tag className="w-5 h-5 text-red-500" />}
+              icon={<Tag className="w-5 h-5 text-black" />}
               label="Discount (%)"
               name="discount"
               type="number"
@@ -299,7 +302,7 @@ const Product = () => {
           </div>
 
           <InputField
-            icon={<Package className="w-5 h-5 text-indigo-500" />}
+            icon={<Package className="w-5 h-5 text-black" />}
             label="Description"
             name="description"
             type="text"
@@ -308,11 +311,11 @@ const Product = () => {
           />
 
           <div className="relative">
-            <label className="block text-white text-sm font-medium mb-2">Details</label>
+            <label className="block text-black text-sm font-medium mb-2">Details</label>
             <textarea
               {...register("details")}
               placeholder="Enter detailed information"
-              className="w-full p-3 rounded-lg focus:outline-none resize-y min-h-[100px]"
+              className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black resize-y min-h-[100px]"
             />
           </div>
 
@@ -324,7 +327,7 @@ const Product = () => {
             className={`w-full py-3 text-lg font-semibold rounded-xl text-white shadow-md transition ${
               loadingSubmit
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-purple-600 to-pink-500 hover:from-pink-500 hover:to-orange-400"
+                : "bg-black hover:bg-gray-800"
             }`}
           >
             {loadingSubmit ? "Adding Product..." : "➕ Add Product"}
@@ -332,12 +335,42 @@ const Product = () => {
         </form>
       </motion.div>
 
-      <button
-        onClick={handleSeeAllProducts}
-        className="mt-8 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-      >
-        📋 See All Products
-      </button>
+    <button
+  onClick={handleSeeAllProducts}
+  disabled={loadingProducts}
+  className={`mt-8 px-8 py-3 rounded-lg flex items-center justify-center gap-2 transition
+    ${loadingProducts ? "bg-gray-400 text-gray-700 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800"}
+  `}
+>
+  {loadingProducts ? (
+    // Spinner inside button
+    <svg
+      className="animate-spin h-5 w-5 text-gray-700"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+  ) : (
+    <>
+      📋 See All Products
+    </>
+  )}
+</button>
+
 
       {showProductsTable && (
         <div className="mt-6 overflow-x-auto max-w-7xl mx-auto px-4 w-full">
@@ -345,7 +378,7 @@ const Product = () => {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="p-2 rounded border border-gray-300 shadow-sm"
+              className="p-2 rounded border border-gray-300 shadow-sm text-black"
             >
               <option value="All">All Categories</option>
               <option value="MEN">MEN</option>
@@ -357,17 +390,17 @@ const Product = () => {
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1 rounded bg-purple-600 text-white disabled:bg-gray-400"
+                className="px-3 py-1 rounded bg-black text-white disabled:bg-gray-400"
               >
                 Prev
               </button>
-              <span className="text-gray-700 font-semibold">
+              <span className="text-black font-semibold">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1 rounded bg-purple-600 text-white disabled:bg-gray-400"
+                className="px-3 py-1 rounded bg-black text-white disabled:bg-gray-400"
               >
                 Next
               </button>
@@ -377,9 +410,9 @@ const Product = () => {
           {filteredProducts.length === 0 ? (
             <p className="text-center text-gray-600 mt-4">No products found.</p>
           ) : (
-            <table className="w-full border border-gray-300 rounded-lg shadow-sm text-sm">
+            <table className="w-full border border-gray-300 rounded-lg shadow-sm text-sm text-black">
               <thead>
-                <tr className="bg-gray-100 text-left text-gray-700 uppercase">
+                <tr className="bg-gray-100 text-left uppercase text-black">
                   <th className="p-3">Image</th>
                   <th className="p-3">Name</th>
                   <th className="p-3">Category</th>
@@ -417,7 +450,7 @@ const Product = () => {
                     <td className="p-3 text-center">
                       <button
                         onClick={() => handleDeleteProduct(product._id)}
-                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+                        className="bg-red-600 hover:bg-red-700 text-white p-2 rounded"
                         title="Delete Product"
                       >
                         <FaTrashAlt />
@@ -436,14 +469,14 @@ const Product = () => {
 
 const InputField = ({ label, name, register, type = "text", placeholder, icon }) => (
   <div className="relative">
-    <label className="block text-white text-sm font-medium mb-2">{label}</label>
-    <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-purple-400 transition-all">
+    <label className="block text-black text-sm font-medium mb-2">{label}</label>
+    <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-black transition-all">
       <span className="pl-3">{icon}</span>
       <input
         type={type}
         {...register(name)}
         placeholder={placeholder}
-        className="w-full p-3 pl-2 rounded-lg focus:outline-none"
+        className="w-full p-3 pl-2 rounded-lg focus:outline-none text-black bg-white"
       />
     </div>
   </div>
@@ -451,14 +484,14 @@ const InputField = ({ label, name, register, type = "text", placeholder, icon })
 
 const BeautifulSelect = ({ label, icon, options, value, onChange, register }) => (
   <div className="relative">
-    <label className="block text-white text-sm font-medium mb-2">{label}</label>
-    <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-purple-400 transition-all">
+    <label className="block text-black text-sm font-medium mb-2">{label}</label>
+    <div className="flex items-center bg-white rounded-lg shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-black transition-all">
       <span className="pl-3">{icon}</span>
       <select
         {...register}
         value={value}
         onChange={onChange}
-        className="w-full p-3 pl-2 rounded-lg focus:outline-none cursor-pointer"
+        className="w-full p-3 pl-2 rounded-lg focus:outline-none cursor-pointer text-black bg-white"
       >
         <option value="">Select {label}</option>
         {options.map((opt) => (

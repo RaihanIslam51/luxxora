@@ -1,24 +1,25 @@
 import Boy from '../All-Banner/Boy';
-import Girls from '../All-Banner/Girls';
 import Women from '../All-Banner/Women';
-import ViewAllE from '../Eyewear/ViewAll/ViewAllE';
 import ViewAllK from '../Kids/View-All/ViewAllK';
-import ViewAllMC from '../Men/Clothing/ViewAllMC';
-import ViewAllWC from '../Women/Clothing/ViewAllWC';
+import ViewAllM from '../Men/View-All/ViewAllM';
+import ViewAllW from '../Women/View-All/ViewAllW';
 import Banner from './Banner';
+import LatestProduct from './LatestProduct/LatestProduct';
+
 
 
 const Home = () => {
   return (
     <div>
       <Banner />
-      <ViewAllMC></ViewAllMC>
+      <LatestProduct></LatestProduct>
+     
+        <ViewAllM></ViewAllM>
+      
       <Women></Women>
-    <ViewAllWC></ViewAllWC>
+    <ViewAllW></ViewAllW>
       <Boy></Boy>
       <ViewAllK></ViewAllK>
-      <Girls></Girls>
-      <ViewAllE></ViewAllE>
     </div>
   );
 };

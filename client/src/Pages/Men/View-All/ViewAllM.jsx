@@ -1,86 +1,143 @@
-import React from 'react';
-import CoatsJackets from '../Clothing/CoatsJackets';
-import Denim from '../Clothing/Denim';
-import Knitwear from '../Clothing/Knitwear';
-import Leather from '../Clothing/Leather';
-import Shorts from '../Clothing/Shorts';
-import Sweatshirt from '../Clothing/Sweatshirt';
-import Swimwear from '../Clothing/Swimwear';
-import Tshirt from '../Clothing/Tshirt';
-import Underwear from '../Clothing/Underwear';
-import HatsandScarves from '../Accessories/HatsandScarves';
-import OthersAccessories from '../Accessories/OthersAccessories';
-import WalletandCardholders from '../Accessories/WalletandCardholders';
-import BackPacks from '../Bags/BackPacks';
-import Crossbodybags from '../Bags/Crossbodybags';
-import Totebags from '../Bags/Totebags';
-import WaistBags from '../Bags/WaistBags';
-import Bracelets from '../Jewelry/Bracelets';
-import Earrings from '../Jewelry/Earrings';
-import Necklaces from '../Jewelry/Necklaces';
-import Rings from '../Jewelry/Rings';
-import BeRightBack from '../Shoes/BeRightBack';
-import Boots from '../Shoes/Boots';
-import FormalShoes from '../Shoes/FormalShoes';
-import OutofOffice from '../Shoes/OutofOffice';
-import Slides from '../Shoes/Slides';
-import Sneaker from '../Shoes/Sneaker';
-import Vulcanized from '../Shoes/Vulcanized';
-
-const SectionTitle = ({ title }) => (
-  <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mt-10 mb-5 relative pl-4 border-l-4 border-purple-600">
-    {title}
-  </h2>
-);
+// src/components/ViewAllM.jsx
+import React, { useEffect, useState } from "react";
+import useAuth from "../../../Hook/useAuth";
+import useAxiosSecure from "../../../Hook/useAxiosSecure";
+import Loader from "../../../generic reusable component/Loader/Loader";
+import ProductCard from "../../../generic reusable component/ProductCard/ProductCard";
 
 const ViewAllM = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [wishlist, setWishlist] = useState([]);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // 2 rows × 4 columns
+  const [priceFilter, setPriceFilter] = useState(""); // "" | "low" | "high"
+
+  const { UserData } = useAuth(); 
+  const axiosSecure = useAxiosSecure(); 
+
+  // Fetch MEN products
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProducts = async () => {
+      try {
+        const res = await axiosSecure.get("/api/men-products");
+        if (!isMounted) return;
+
+        // Sort by newest first (descending _id)
+        const sorted = res.data.sort((a, b) => {
+          const idA = a._id.$oid || a._id;
+          const idB = b._id.$oid || b._id;
+          return idB.localeCompare(idA);
+        });
+
+        setProducts(sorted);
+      } catch (err) {
+        console.error("Failed to fetch MEN products:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, [axiosSecure]);
+
+  // Handle wishlist toggle
+  const handleToggleWishlist = (productId) => {
+    setWishlist((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  if (loading) return <Loader />;
+
+  // Apply price filter without breaking newest-first order
+  const filteredProducts = [...products].sort((a, b) => {
+    if (priceFilter === "low") return a.price - b.price;
+    if (priceFilter === "high") return b.price - a.price;
+    return 0; // keep newest first
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIdx, startIdx + itemsPerPage);
+
+  const handlePrev = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const handleNext = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+
+  const handleFilterChange = (e) => {
+    setPriceFilter(e.target.value);
+    setCurrentPage(1); // reset page on filter change
+  };
+
   return (
-    <div className="pt-16 px-6 md:px-10 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <h1 className="text-4xl font-extrabold text-center text-gray-900 mb-12">
-        🧥 Men's All Products
+    <div className=" px-6 md:px-10 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-center text-purple-800">
+         Men's All Products
       </h1>
 
-      {/* Clothing Section */}
-      <SectionTitle title="👕 All Clothing" />
-      <CoatsJackets />
-      <Denim />
-      <Knitwear />
-      <Leather />
-      <Shorts />
-      <Sweatshirt />
-      <Swimwear />
-      <Tshirt />
-      <Underwear />
+      {/* Price Filter */}
+      <div className="flex justify-end mb-6">
+        <select
+          value={priceFilter}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border rounded"
+        >
+          <option value="">Sort by Price</option>
+          <option value="low">Low → High</option>
+          <option value="high">High → Low</option>
+        </select>
+      </div>
 
-      {/* Accessories Section */}
-      <SectionTitle title="🧢 Accessories" />
-      <HatsandScarves />
-      <OthersAccessories />
-      <WalletandCardholders />
+      {/* Products Grid */}
+      {currentProducts.length === 0 ? (
+        <p className="text-center text-gray-500">No products available.</p>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {currentProducts.map((item) => (
+            <ProductCard
+              key={item._id.$oid || item._id}
+              item={item}
+              isWishlisted={wishlist.includes(item._id.$oid || item._id)}
+              onToggleWishlist={() => handleToggleWishlist(item._id.$oid || item._id)}
+              onClick={(id) => console.log("Clicked product ID:", id)}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Bag Section */}
-      <SectionTitle title="🎒 Bag Section" />
-      <BackPacks />
-      <Crossbodybags />
-      <Totebags />
-      <WaistBags />
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mb-24">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            onClick={handlePrev}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
 
-      {/* Jewelry Section */}
-      <SectionTitle title="💍 Jewelry" />
-      <Bracelets />
-      <Earrings />
-      <Necklaces />
-      <Rings />
+          <span className="text-gray-700 font-semibold">
+            Page {currentPage} of {totalPages}
+          </span>
 
-      {/* Shoes Section */}
-      <SectionTitle title="👟 Shoes Section" />
-      <BeRightBack />
-      <Boots />
-      <FormalShoes />
-      <OutofOffice />
-      <Slides />
-      <Sneaker />
-      <Vulcanized />
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            onClick={handleNext}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

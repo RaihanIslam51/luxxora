@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import useAxiosSecure from "../../Hook/useAxiosSecure";
+import { Link } from "react-router-dom";
 
 const Boy = () => {
   const [banner, setBanner] = useState(null);
@@ -57,7 +58,7 @@ const Boy = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
 
       {/* Content Area */}
-      <div className="text-white absolute bottom-4 left-4 md:bottom-10 md:left-12 bg-black/40 backdrop-blur-md px-5 md:px-6 py-2 md:py-3 flex justify-between items-center w-[90vw] max-w-xs md:max-w-[350px] rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+      <Link to='/men/all' className="text-white absolute bottom-4 left-4 md:bottom-10 md:left-12 bg-black/40 backdrop-blur-md px-5 md:px-6 py-2 md:py-3 flex justify-between items-center w-[90vw] max-w-xs md:max-w-[350px] rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
         <button className="text-sm md:text-base font-semibold hover:text-yellow-300 transition-colors duration-300">
           BOYS SHOP
         </button>
@@ -65,7 +66,7 @@ const Boy = () => {
           size={22}
           className="md:size-6 group-hover:translate-x-1 transition-transform duration-300"
         />
-      </div>
+      </Link>
     </div>
   );
 };

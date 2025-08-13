@@ -112,6 +112,7 @@ import ProductDetails from "../Pages/Men/Products-Details/ProductDetails";
 import Banner from "../Pages/Admin/Banner/Banner";
 import ShirtsM from "../Pages/Men/Clothing/ShirtsM";
 import PantsM from "../Pages/Men/Clothing/PantsM";
+import PrivateRoutes from "./PrivateRoute";
 
 
 export const router = createBrowserRouter([
@@ -128,6 +129,7 @@ export const router = createBrowserRouter([
       { path: "/sales/women", Component: WomenSales},
       { path: "/sales/kids", Component: KidSales },
       { path: "/sales/all", Component: ViewAll },
+      {path:'/women/all', Component:ViewAllW },
 
       //all icon
       {  path: "/product/:id",
@@ -138,12 +140,13 @@ export const router = createBrowserRouter([
       }
       return res.json();
     },
-    element: <ProductDetails />},
+    element: <PrivateRoutes><ProductDetails /></PrivateRoutes>},
 
 
 
      //cart pages
       {path:"/wishlist",Component:WishList},
+      
 
       // Men
       {path:"/men/clothing/shirt",Component:ShirtsM},
