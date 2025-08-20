@@ -266,7 +266,7 @@ const Navbar = () => {
   // Create menu based on user role
   const getMenuItems = () => {
     const baseMenu = [...menuItems];
-    if (UserData?.email === "rijoanmaruf@gmail.com") {
+    if (UserData?.email === "connect@luxxoraverse.com") {
       baseMenu.push({
         name: "ADMIN",
         path: "/admin",
