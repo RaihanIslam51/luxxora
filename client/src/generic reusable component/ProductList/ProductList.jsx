@@ -117,7 +117,7 @@ const ProductList = ({ category, subCategory, type }) => {
       {products.length === 0 ? (
         <p className="text-center text-gray-500">No products available.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-24">
+        <div className="pt-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-24">
           {products.map((item) => (
             <ProductCard
               key={item._id}

@@ -6,12 +6,12 @@ import {
   Search,
   ShoppingCart,
   User2,
-  X
+  X,
 } from "lucide-react";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Authantation/Context/AuthContext";
-import ProductCard from '../generic reusable component/ProductCard/ProductCard';
+import ProductCard from "../generic reusable component/ProductCard/ProductCard";
 import useAxiosSecure from "../Hook/useAxiosSecure";
 
 const menuItems = [
@@ -77,8 +77,14 @@ const menuItems = [
         path: "/men/accessories",
         subsubmenu: [
           { name: "Hats and Scarves", path: "/men/accessories/Hatsand" },
-          { name: "Wallet and Cardholders", path: "/men/accessories/Walletand" },
-          { name: "Others Accessories", path: "/men/accessories/OthersAccessories" },
+          {
+            name: "Wallet and Cardholders",
+            path: "/men/accessories/Walletand",
+          },
+          {
+            name: "Others Accessories",
+            path: "/men/accessories/OthersAccessories",
+          },
           { name: "View All", path: "/men/accessories/ViewAll" },
         ],
       },
@@ -159,8 +165,14 @@ const menuItems = [
         name: "Accessories",
         path: "/women/accessories",
         subsubmenu: [
-          { name: "Wallet and Cardholders", path: "/women/accessories/Walletand" },
-          { name: "Soft Accessories", path: "/women/accessories/SoftAccessories" },
+          {
+            name: "Wallet and Cardholders",
+            path: "/women/accessories/Walletand",
+          },
+          {
+            name: "Soft Accessories",
+            path: "/women/accessories/SoftAccessories",
+          },
           { name: "Belts", path: "/women/accessories/Belts" },
           { name: "View All", path: "/women/accessories/Viewall" },
         ],
@@ -254,7 +266,7 @@ const Navbar = () => {
   // Create menu based on user role
   const getMenuItems = () => {
     const baseMenu = [...menuItems];
-    if (UserData?.email === "connect@luxxoraverse.com") {
+    if (UserData?.email === "rijoanmaruf@gmail.com") {
       baseMenu.push({
         name: "ADMIN",
         path: "/admin",
@@ -292,7 +304,6 @@ const Navbar = () => {
 
   // Search functionality
   useEffect(() => {
-
     const delayDebounce = setTimeout(() => {
       if (searchTerm.trim() !== "") {
         axiosSecure
@@ -307,17 +318,17 @@ const Navbar = () => {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, axiosSecure]);
 
-const handleCardClick = useCallback((id) => {
-  // Navigate to details page
-  navigate(`/product/${id}`);
+  const handleCardClick = useCallback(
+    (id) => {
+      // Navigate to details page
+      navigate(`/product/${id}`);
 
-  // Clear search term and search results to prevent dropdown from reappearing
-  setSearchTerm("");
-  setSearchResults([]);
-}, [navigate]);
-
-
-
+      // Clear search term and search results to prevent dropdown from reappearing
+      setSearchTerm("");
+      setSearchResults([]);
+    },
+    [navigate]
+  );
 
   const handleLogout = async () => {
     try {
@@ -343,7 +354,8 @@ const handleCardClick = useCallback((id) => {
     setActiveSubmenuIndex(null);
   };
 
-  const slideBase = "absolute top-0 left-0 w-full h-full bg-white/95 backdrop-blur-xl overflow-y-auto p-6 transition-all";
+  const slideBase =
+    "absolute top-0 left-0 w-full h-full bg-white/95 backdrop-blur-xl overflow-y-auto p-6 transition-all";
 
   return (
     <>
@@ -352,13 +364,58 @@ const handleCardClick = useCallback((id) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-16 flex items-center justify-between px-6 sm:px-10">
             {/* Logo */}
-            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <Link
+              to="/"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            >
               <img
                 src="/Luxxora.png"
                 alt="Luxxora Logo"
                 className="h-10 sm:h-12 object-contain select-none drop-shadow-sm hover:scale-105 transition-transform duration-300"
               />
             </Link>
+
+            {/* Search Bar */}
+            <div
+              className={`hidden md:flex fixed left-1/2 -translate-x-1/2 top-2 justify-start w-[30vw] px-6 pb-3 transition-all duration-500 z-50 
+  }`}
+            >
+              <div className="relative w-full max-w-7xl">
+                <input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  type="text"
+                  placeholder="Search fashion, brands & more"
+                  className="w-full pl-14 pr-4 py-3  rounded-lg
+        border border-transparent focus:border-black
+        focus:ring-1 focus:ring-black
+        text-base font-medium placeholder-gray-700
+        transition-all duration-300 "
+                />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                  <Search className="w-7 h-7 opacity-70" />
+                </span>
+
+                {/* Search Results Dropdown */}
+                {searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 w-full max-w-7xl mx-auto bg-white shadow-lg z-50 p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-h-[80vh] overflow-y-auto rounded-b-xl">
+                    {searchResults.map((item) => (
+                      <ProductCard
+                        key={item._id}
+                        item={item}
+                        isWishlisted={wishlist.includes(
+                          item._id?.$oid || item._id
+                        )}
+                        onToggleWishlist={() => console.log("Wishlist toggle")}
+                        onClick={() =>
+                          handleCardClick(item._id?.$oid || item._id)
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Action Icons - Keeping the original icon sizes */}
             <div className="flex items-center space-x-6 text-gray-800 text-2xl relative">
@@ -373,7 +430,10 @@ const handleCardClick = useCallback((id) => {
                   onMouseLeave={() => setShowLogout(false)}
                 >
                   <img
-                    src={UserData.photoURL || "https://i.ibb.co/2FxFsjK/default-avatar.png"}
+                    src={
+                      UserData.photoURL ||
+                      "https://i.ibb.co/2FxFsjK/default-avatar.png"
+                    }
                     alt="User Profile"
                     className="w-10 h-10 rounded-full border cursor-pointer hover:scale-105 transition duration-300"
                   />
@@ -400,61 +460,16 @@ const handleCardClick = useCallback((id) => {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
               >
-                {menuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+                {menuOpen ? (
+                  <X className="w-7 h-7" />
+                ) : (
+                  <Menu className="w-7 h-7" />
+                )}
               </button>
             </div>
           </div>
-
-          {/* Search Bar */}
-          <div
-            className={`hidden md:flex justify-start px-6 pb-3 transition-all duration-500 ${hideSearch ? "opacity-0 -translate-y-5 h-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto"
-              }`}
-          >
-
-
-            <div className="relative w-full max-w-7xl">
-      <input
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        type="text"
-        placeholder="Search for luxury fashion, brands & more..."
-        className="w-full pl-14 pr-4 py-3 bg-gray-100 rounded-lg
-        border border-transparent focus:border-black
-        focus:ring-1 focus:ring-black
-        text-base font-medium placeholder-gray-400
-        transition-all duration-300 shadow-sm"
-      />
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
-        <Search className="w-7 h-7 opacity-70" />
-      </span>
-
-      {/* Search Results Dropdown */}
-      {searchResults.length > 0 && (
-        <div className="absolute top-full left-0 w-full max-w-7xl mx-auto bg-white shadow-lg z-50 p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-h-[80vh] overflow-y-auto rounded-b-xl">
-          {searchResults.map((item) => (
-            <ProductCard
-              key={item._id}
-              item={item}
-              isWishlisted={wishlist.includes(item._id?.$oid || item._id)}
-              onToggleWishlist={() => console.log("Wishlist toggle")}
-              onClick={() => handleCardClick(item._id?.$oid || item._id)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-
-
-
-
-          </div>
         </div>
       </nav>
-
-
-
-
-      
 
       {/* Fullscreen Menu */}
       {menuOpen && (
@@ -476,7 +491,9 @@ const handleCardClick = useCallback((id) => {
                   className="w-full flex justify-between items-center px-6 py-5 text-black font-medium text-xl hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
                 >
                   {item.name}
-                  {item.submenu && <ChevronDown className="w-5 h-5 opacity-70" />}
+                  {item.submenu && (
+                    <ChevronDown className="w-5 h-5 opacity-70" />
+                  )}
                 </button>
               ))}
             </div>
@@ -526,18 +543,18 @@ const handleCardClick = useCallback((id) => {
                 <ArrowLeft className="w-6 h-6" />
                 <span>Back</span>
               </button>
-              {getMenuItems()[activeMenuIndex].submenu[activeSubmenuIndex].subsubmenu.map(
-                (subsub, subsubIdx) => (
-                  <Link
-                    key={subsubIdx}
-                    to={subsub.path}
-                    onClick={closeMenu}
-                    className="block px-6 py-5 text-black font-normal text-xl hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
-                  >
-                    {subsub.name}
-                  </Link>
-                )
-              )}
+              {getMenuItems()[activeMenuIndex].submenu[
+                activeSubmenuIndex
+              ].subsubmenu.map((subsub, subsubIdx) => (
+                <Link
+                  key={subsubIdx}
+                  to={subsub.path}
+                  onClick={closeMenu}
+                  className="block px-6 py-5 text-black font-normal text-xl hover:bg-gray-100 hover:pl-8 transition-all duration-300 border-b border-gray-200"
+                >
+                  {subsub.name}
+                </Link>
+              ))}
             </div>
           )}
         </div>

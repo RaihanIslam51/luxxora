@@ -61,8 +61,14 @@ const menuItems = [
         path: "/men/accessories",
         subsubmenu: [
           { name: "Hats and Scarves", path: "/men/accessories/Hatsand" },
-          { name: "Wallet and Cardholders", path: "/men/accessories/Walletand" },
-          { name: "Others Accessories", path: "/men/accessories/OthersAccessories" },
+          {
+            name: "Wallet and Cardholders",
+            path: "/men/accessories/Walletand",
+          },
+          {
+            name: "Others Accessories",
+            path: "/men/accessories/OthersAccessories",
+          },
           { name: "View All", path: "/men/accessories/ViewAll" },
         ],
       },
@@ -143,8 +149,14 @@ const menuItems = [
         name: "Accessories",
         path: "/women/accessories",
         subsubmenu: [
-          { name: "Wallet and Cardholders", path: "/women/accessories/Walletand" },
-          { name: "Soft Accessories", path: "/women/accessories/SoftAccessories" },
+          {
+            name: "Wallet and Cardholders",
+            path: "/women/accessories/Walletand",
+          },
+          {
+            name: "Soft Accessories",
+            path: "/women/accessories/SoftAccessories",
+          },
           { name: "Belts", path: "/women/accessories/Belts" },
           { name: "View All", path: "/women/accessories/Viewall" },
         ],
