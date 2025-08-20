@@ -8,7 +8,8 @@ const ProductCard = ({ item, isWishlisted, onToggleWishlist, onClick }) => {
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.3 }}
-      className="relative flex flex-col rounded-xl p-3 sm:p-4 bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group border border-gray-100"
+      className="relative flex flex-col rounded-xl p-3 sm:p-4 bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group border border-gray-100
+                 w-[150px] sm:w-[180px] md:w-[220px] lg:w-[250px] xl:w-[280px]"
       onClick={() => onClick(item._id)}
     >
       {/* Wishlist icon */}
@@ -29,7 +30,7 @@ const ProductCard = ({ item, isWishlisted, onToggleWishlist, onClick }) => {
       </button>
 
       {/* Product image */}
-      <div className="w-full h-48 sm:h-60 md:h-72 lg:h-80 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+      <div className="w-full h-36 sm:h-44 md:h-52 lg:h-56 xl:h-64 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
         <img
           src={item.image}
           alt={item.name}
@@ -39,27 +40,27 @@ const ProductCard = ({ item, isWishlisted, onToggleWishlist, onClick }) => {
       </div>
 
       {/* Product info */}
-      <div className="mt-3 sm:mt-4 flex flex-col flex-1">
+      <div className="mt-2 sm:mt-3 flex flex-col flex-1 justify-between">
         {/* Product name */}
         <h3
-          className="font-semibold text-base sm:text-lg text-gray-900 break-words leading-tight line-clamp-2 mb-2 sm:mb-3"
+          className="font-semibold text-sm sm:text-base md:text-lg text-gray-900 break-words leading-tight line-clamp-2 mb-2 sm:mb-3"
           title={item.name}
         >
           {item.name}
         </h3>
 
         {/* Price section */}
-        <div className="flex items-center justify-start gap-2 sm:gap-3 mt-auto">
+        <div className="flex flex-wrap items-center justify-start gap-1 sm:gap-2 md:gap-3 mt-auto">
           {item.discountPrice && (
-            <span className="line-through text-gray-400 text-sm sm:text-base">
+            <span className="line-through text-gray-400 text-xs sm:text-sm md:text-base lg:text-base">
               ৳{Math.floor(item.price)}
             </span>
           )}
-          <span className="text-green-600 font-bold text-base sm:text-lg">
+          <span className="text-green-600 font-bold text-sm sm:text-base md:text-lg lg:text-xl">
             ৳{Math.floor(item.discountPrice || item.price)}
           </span>
           {item.discountPrice && (
-            <span className="bg-red-100 text-red-600 rounded px-2 py-0.5 text-xs sm:text-sm font-semibold whitespace-nowrap">
+            <span className="bg-red-100 text-red-600 rounded px-2 py-0.5 text-xs sm:text-sm md:text-base lg:text-base font-semibold whitespace-nowrap">
               {Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF
             </span>
           )}

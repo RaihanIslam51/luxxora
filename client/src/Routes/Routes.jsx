@@ -133,7 +133,7 @@ export const router = createBrowserRouter([
       //all icon
       {  path: "/product/:id",
          loader: async ({ params }) => {
-      const res = await fetch(`http://localhost:5000/api/products/${params.id}`);
+      const res = await fetch(`https://luxxora-server.vercel.app/api/products/${params.id}`);
       if (!res.ok) {
         throw new Response("Product not found", { status: 404 });
       }
