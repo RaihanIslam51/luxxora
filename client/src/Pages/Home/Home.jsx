@@ -1,5 +1,5 @@
-import Boy from '../All-Banner/Boy';
-import Women from '../All-Banner/Women';
+// import Boy from '../All-Banner/Boy';
+// import Women from '../All-Banner/Women';
 import ViewAllK from '../Kids/View-All/ViewAllK';
 import ViewAllM from '../Men/View-All/ViewAllM';
 import ViewAllW from '../Women/View-All/ViewAllW';
@@ -16,9 +16,9 @@ const Home = () => {
      
         <ViewAllM></ViewAllM>
       
-      <Women></Women>
+      {/* <Women></Women> */}
     <ViewAllW></ViewAllW>
-      <Boy></Boy>
+      {/* <Boy></Boy> */}
       <ViewAllK></ViewAllK>
     </div>
   );

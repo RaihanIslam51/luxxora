@@ -1,12 +1,12 @@
 // src/components/ProductList.jsx
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { useQuery } from "@tanstack/react-query";
-import useAxiosSecure from "../../Hook/useAxiosSecure";
-import ProductCard from "../ProductCard/ProductCard";
-import Loader from "../Loader/Loader";
-import { useState, useEffect } from "react";
 import useAuth from "../../Hook/useAuth";
+import useAxiosSecure from "../../Hook/useAxiosSecure";
+import Loader from "../Loader/Loader";
+import ProductCard from "../ProductCard/ProductCard";
 
 const ProductList = ({ category, subCategory, type }) => {
   const axiosSecure = useAxiosSecure();
@@ -99,10 +99,10 @@ const ProductList = ({ category, subCategory, type }) => {
     setLoadingDetail(true); // show loader immediately
     setTimeout(() => {
       navigate(`/product/${id}`);
-    }, 250); // small delay for smooth UX
+    }, 500); // small delay for smooth UX
   };
 
-  // Show loader if fetching products or navigating
+  // Show loader if fetching products or navigating to details
   if (isLoading || loadingDetail) return <Loader />;
 
   if (isError)

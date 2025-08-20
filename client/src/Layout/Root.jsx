@@ -4,7 +4,7 @@ import Navbar from '../Components/Navbar';
 
 const Root = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen ">
       {/* Navbar */}
       <header className="w-full sticky top-0 z-50 shadow-md">
         <Navbar />

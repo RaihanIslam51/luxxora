@@ -1,19 +1,18 @@
 import {
+  ArrowLeft,
   ChevronDown,
-  ChevronUp,
   Heart,
   Menu,
   Search,
   ShoppingCart,
   User2,
-  X,
-  ArrowLeft,
+  X
 } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import useAxiosSecure from "../Hook/useAxiosSecure";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Authantation/Context/AuthContext";
-import ProductCard from '../generic reusable component/ProductCard/ProductCard'
+import ProductCard from '../generic reusable component/ProductCard/ProductCard';
+import useAxiosSecure from "../Hook/useAxiosSecure";
 
 const menuItems = [
   {
@@ -241,6 +240,16 @@ const menuItems = [
 
 const Navbar = () => {
   const { UserData, SignOutUser } = useContext(AuthContext);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeMenuIndex, setActiveMenuIndex] = useState(null);
+  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState(null);
+  const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [hideSearch, setHideSearch] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
+  const [wishlist, setWishlist] = useState([]);
 
   // Create menu based on user role
   const getMenuItems = () => {
@@ -258,29 +267,22 @@ const Navbar = () => {
     return baseMenu;
   };
 
+  // Fetch wishlist from localStorage
   useEffect(() => {
-    if (UserData?.email) {
-      console.log("User Email:", UserData.email);
+    const savedWishlist = localStorage.getItem("wishlist");
+    if (savedWishlist) {
+      setWishlist(JSON.parse(savedWishlist));
     }
-  }, [UserData]);
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [activeMenuIndex, setActiveMenuIndex] = useState(null);
-  const [activeSubmenuIndex, setActiveSubmenuIndex] = useState(null);
-  const axiosSecure = useAxiosSecure();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [hideSearch, setHideSearch] = useState(false);
-  const [showLogout, setShowLogout] = useState(false);
+  }, []);
 
   // Scroll detection
   useEffect(() => {
     let lastScrollY = 0;
     const handleScroll = () => {
       if (window.scrollY > lastScrollY && window.scrollY > 80) {
-        setHideSearch(true); // Hide on scroll down
+        setHideSearch(true);
       } else {
-        setHideSearch(false); // Show on scroll up
+        setHideSearch(false);
       }
       lastScrollY = window.scrollY;
     };
@@ -288,7 +290,9 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Search functionality
   useEffect(() => {
+
     const delayDebounce = setTimeout(() => {
       if (searchTerm.trim() !== "") {
         axiosSecure
@@ -302,6 +306,18 @@ const Navbar = () => {
 
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, axiosSecure]);
+
+const handleCardClick = useCallback((id) => {
+  // Navigate to details page
+  navigate(`/product/${id}`);
+
+  // Clear search term and search results to prevent dropdown from reappearing
+  setSearchTerm("");
+  setSearchResults([]);
+}, [navigate]);
+
+
+
 
   const handleLogout = async () => {
     try {
@@ -332,105 +348,113 @@ const Navbar = () => {
   return (
     <>
       {/* Navbar Header */}
-      <nav className="w-full bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-md font-sans tracking-wide z-20 fixed top-0 left-0">
-        <div className="h-16 flex items-center justify-between px-6 sm:px-10">
-          {/* Logo */}
-          <Link to="/" onClick={() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}>
-            <img
-              src="/Luxxora.png"
-              alt="Luxxora Logo"
-              className="h-10 sm:h-12 object-contain select-none drop-shadow-sm hover:scale-105 transition-transform duration-300"
-            />
-          </Link>
-
-          {/* Action Icons */}
-          <div className="flex items-center space-x-6 text-gray-800 text-2xl relative">
-            <Link to="/wishlist" title="Wishlist" className="relative group">
-              <Heart className="w-7 h-7 group-hover:text-red-500 transition duration-300" />
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-md font-sans tracking-wide">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-16 flex items-center justify-between px-6 sm:px-10">
+            {/* Logo */}
+            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+              <img
+                src="/Luxxora.png"
+                alt="Luxxora Logo"
+                className="h-10 sm:h-12 object-contain select-none drop-shadow-sm hover:scale-105 transition-transform duration-300"
+              />
             </Link>
 
-            {UserData ? (
-              <div
-                className="relative group"
-                onMouseEnter={() => setShowLogout(true)}
-                onMouseLeave={() => setShowLogout(false)}
-              >
-                <img
-                  src={
-                    UserData.photoURL ||
-                    "https://i.ibb.co/2FxFsjK/default-avatar.png"
-                  }
-                  alt="User Profile"
-                  className="w-10 h-10 rounded-full border cursor-pointer hover:scale-105 transition duration-300"
-                />
-                {showLogout && (
-                  <button
-                    onClick={handleLogout}
-                    className="absolute -top-2 bg-red-500 text-white text-sm px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition-all"
-                  >
-                    Logout
-                  </button>
-                )}
-              </div>
-            ) : (
-              <Link to="/auth/login" title="Login" className="relative group">
-                <User2 className="w-7 h-7 group-hover:text-blue-500 transition duration-300" />
+            {/* Action Icons - Keeping the original icon sizes */}
+            <div className="flex items-center space-x-6 text-gray-800 text-2xl relative">
+              <Link to="/wishlist" title="Wishlist" className="relative group">
+                <Heart className="w-7 h-7 group-hover:text-red-500 transition duration-300" />
               </Link>
-            )}
 
-            <Link to="/cart" title="Cart" className="relative group">
-              <ShoppingCart className="w-7 h-7 group-hover:text-green-500 transition duration-300" />
-            </Link>
-            <button
-              title="Menu"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
-            >
-              {menuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div
-          className={`hidden md:flex justify-start px-6 pb-3 transition-all duration-500 ${hideSearch ? "opacity-0 -translate-y-5 h-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto"
-            }`}
-        >
-          <div className="relative w-full max-w-7xl">
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              type="text"
-              placeholder="Search for luxury fashion, brands & more..."
-              className="w-full pl-14 pr-4 py-3 bg-gray-100 rounded-lg
-              border border-transparent focus:border-black
-              focus:ring-1 focus:ring-black
-              text-base font-medium placeholder-gray-400
-              transition-all duration-300 shadow-sm"
-            />
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
-              <Search className="w-7 h-7 opacity-70" />
-            </span>
-            {/* Search Results Dropdown */}
-            {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 w-full max-w-7xl mx-auto bg-white shadow-lg z-50 p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-h-[80vh] overflow-y-auto rounded-b-xl">
-                {searchResults.map((item) => (
-                  <ProductCard
-                    key={item._id}
-                    item={item}
-                    isWishlisted={false} // replace with actual wishlist logic
-                    onToggleWishlist={(id) => console.log("Wishlist toggle:", id)}
-                    onClick={(id) => console.log("Clicked product:", id)}
+              {UserData ? (
+                <div
+                  className="relative group"
+                  onMouseEnter={() => setShowLogout(true)}
+                  onMouseLeave={() => setShowLogout(false)}
+                >
+                  <img
+                    src={UserData.photoURL || "https://i.ibb.co/2FxFsjK/default-avatar.png"}
+                    alt="User Profile"
+                    className="w-10 h-10 rounded-full border cursor-pointer hover:scale-105 transition duration-300"
                   />
-                ))}
-              </div>
-            )}
+                  {showLogout && (
+                    <button
+                      onClick={handleLogout}
+                      className="absolute -top-2 bg-red-500 text-white text-sm px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition-all"
+                    >
+                      Logout
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <Link to="/auth/login" title="Login" className="relative group">
+                  <User2 className="w-7 h-7 group-hover:text-blue-500 transition duration-300" />
+                </Link>
+              )}
+
+              <Link to="/cart" title="Cart" className="relative group">
+                <ShoppingCart className="w-7 h-7 group-hover:text-green-500 transition duration-300" />
+              </Link>
+              <button
+                title="Menu"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-2 rounded-full hover:bg-gray-100 transition duration-200"
+              >
+                {menuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div
+            className={`hidden md:flex justify-start px-6 pb-3 transition-all duration-500 ${hideSearch ? "opacity-0 -translate-y-5 h-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto"
+              }`}
+          >
+
+
+            <div className="relative w-full max-w-7xl">
+      <input
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        type="text"
+        placeholder="Search for luxury fashion, brands & more..."
+        className="w-full pl-14 pr-4 py-3 bg-gray-100 rounded-lg
+        border border-transparent focus:border-black
+        focus:ring-1 focus:ring-black
+        text-base font-medium placeholder-gray-400
+        transition-all duration-300 shadow-sm"
+      />
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+        <Search className="w-7 h-7 opacity-70" />
+      </span>
+
+      {/* Search Results Dropdown */}
+      {searchResults.length > 0 && (
+        <div className="absolute top-full left-0 w-full max-w-7xl mx-auto bg-white shadow-lg z-50 p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-h-[80vh] overflow-y-auto rounded-b-xl">
+          {searchResults.map((item) => (
+            <ProductCard
+              key={item._id}
+              item={item}
+              isWishlisted={wishlist.includes(item._id?.$oid || item._id)}
+              onToggleWishlist={() => console.log("Wishlist toggle")}
+              onClick={() => handleCardClick(item._id?.$oid || item._id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+
+
+
 
           </div>
         </div>
       </nav>
+
+
+
+
+      
 
       {/* Fullscreen Menu */}
       {menuOpen && (

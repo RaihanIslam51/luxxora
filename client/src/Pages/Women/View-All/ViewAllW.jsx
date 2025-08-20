@@ -1,5 +1,5 @@
-// src/components/ViewAllW.jsx
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuth from "../../../Hook/useAuth";
 import useAxiosSecure from "../../../Hook/useAxiosSecure";
 import Loader from "../../../generic reusable component/Loader/Loader";
@@ -10,15 +10,29 @@ const ViewAllW = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [wishlist, setWishlist] = useState([]);
+  const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8; // 2 rows × 4 columns
-  const [priceFilter, setPriceFilter] = useState(""); // "" | "low" | "high"
+  const itemsPerPage = 12;
+  const [sortFilter, setSortFilter] = useState("newest");
 
   const { UserData } = useAuth();
   const axiosSecure = useAxiosSecure();
 
-  // Fetch WOMEN products (fixed: only called once)
+  // Fetch wishlist from localStorage
+  useEffect(() => {
+    const savedWishlist = localStorage.getItem("wishlist");
+    if (savedWishlist) {
+      setWishlist(JSON.parse(savedWishlist));
+    }
+  }, []);
+
+  // Save wishlist to localStorage
+  useEffect(() => {
+    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  }, [wishlist]);
+
+  // Fetch WOMEN products
   useEffect(() => {
     let isMounted = true;
 
@@ -35,7 +49,7 @@ const ViewAllW = () => {
           return;
         }
 
-        // Sort by newest first (descending _id)
+        // Sort by newest first
         const sorted = res.data.sort((a, b) => {
           const idA = a._id?.$oid || a._id;
           const idB = b._id?.$oid || b._id;
@@ -56,112 +70,236 @@ const ViewAllW = () => {
     return () => {
       isMounted = false;
     };
-    // ✅ Removed axiosSecure from dependency array to avoid repeated calls
   }, []);
 
+  const handleCardClick = useCallback(
+    (id) => navigate(`/product/${id}`),
+    [navigate]
+  );
+
   // Handle wishlist toggle
-  const handleToggleWishlist = (productId) => {
-    setWishlist((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
+  const handleToggleWishlist = async (productId) => {
+    if (!UserData?.email) {
+      // Show login prompt (could add a toast notification here)
+      return;
+    }
+
+    const isInWishlist = wishlist.includes(productId);
+    
+    try {
+      if (isInWishlist) {
+        await axiosSecure.delete(`/api/wishlist/${productId}`, {
+          data: { email: UserData.email },
+        });
+        setWishlist((prev) => prev.filter((id) => id !== productId));
+      } else {
+        await axiosSecure.post("/api/wishlist", {
+          productId,
+          email: UserData.email,
+        });
+        setWishlist((prev) => [...prev, productId]);
+      }
+    } catch (err) {
+      console.error("Error updating wishlist:", err);
+    }
   };
 
-  if (loading) return <Loader />;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader />
+    </div>
+  );
 
-  if (error) {
-    return (
-      <div className=" px-6 md:px-10 bg-gradient-to-b from-gray-50 to-white min-h-screen flex items-center justify-center">
-        <p className="text-center text-red-500 text-lg font-semibold">{error}</p>
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-md p-8 max-w-md w-full text-center">
+        <div className="text-red-500 text-4xl mb-4">⚠️</div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Products</h2>
+        <p className="text-gray-600 mb-6">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition"
+        >
+          Try Again
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Apply price filter without breaking newest-first order
-  const filteredProducts = [...products].sort((a, b) => {
-    if (priceFilter === "low") return a.price - b.price;
-    if (priceFilter === "high") return b.price - a.price;
-    return 0; // keep newest first
+  // Apply sorting
+  const sortedProducts = [...products].sort((a, b) => {
+    if (sortFilter === "price-low") return a.price - b.price;
+    if (sortFilter === "price-high") return b.price - a.price;
+    // Default: newest first
+    const idA = a._id?.$oid || a._id;
+    const idB = b._id?.$oid || b._id;
+    return idB.localeCompare(idA);
   });
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIdx, startIdx + itemsPerPage);
+  const currentProducts = sortedProducts.slice(startIdx, startIdx + itemsPerPage);
 
   const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
-  const handleFilterChange = (e) => {
-    setPriceFilter(e.target.value);
-    setCurrentPage(1); // reset page on filter change
+  const handleSortChange = (e) => {
+    setSortFilter(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
   };
 
   return (
-    <div className="pt-30 px-6 md:px-10 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-purple-800">
-        Women's All Products
-      </h1>
+    <section className="min-h-screen pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Women's Collection
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Explore our complete range of women's fashion, from everyday essentials to special occasion wear.
+          </p>
+        </div>
 
-      {/* Price Filter */}
-      <div className="flex justify-end mb-6">
-        <select
-          value={priceFilter}
-          onChange={handleFilterChange}
-          className="px-4 py-2 border rounded"
-        >
-          <option value="">Sort by Price</option>
-          <option value="low">Low → High</option>
-          <option value="high">High → Low</option>
-        </select>
+        {/* Filters and Results Info */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <div className="text-sm text-gray-600">
+            Showing {startIdx + 1}-{Math.min(startIdx + itemsPerPage, sortedProducts.length)} of {sortedProducts.length} products
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <label htmlFor="sort" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              Sort by:
+            </label>
+            <select
+              id="sort"
+              value={sortFilter}
+              onChange={handleSortChange}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black transition"
+            >
+              <option value="newest">Newest First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Products Grid */}
+        {currentProducts.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+            <div className="text-gray-400 text-6xl mb-4">👗</div>
+            <h3 className="text-xl font-medium text-gray-700 mb-2">No products available</h3>
+            <p className="text-gray-500">Check back later for new arrivals in our women's collection.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
+              {currentProducts.map((item) => {
+                const productId = item._id?.$oid || item._id;
+                return (
+                  <div key={productId} className="w-full">
+                    <ProductCard
+                      item={item}
+                      isWishlisted={wishlist.includes(productId)}
+                      onToggleWishlist={() => handleToggleWishlist(productId)}
+                      onClick={() => handleCardClick(productId)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onClick={handlePrev}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Page numbers */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 2) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 1) {
+                        pageNum = totalPages - 2 + i;
+                      } else {
+                        pageNum = currentPage - 1 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => goToPage(pageNum)}
+                          className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border transition ${
+                            currentPage === pageNum
+                              ? "bg-black text-white border-black"
+                              : "border-gray-300 hover:bg-gray-100"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+
+                    {/* Ellipsis for many pages */}
+                    {totalPages > 3 && currentPage < totalPages - 1 && (
+                      <span className="px-1 text-gray-500">...</span>
+                    )}
+
+                    {/* Show last page if not in current view */}
+                    {totalPages > 3 && currentPage < totalPages - 1 && (
+                      <button
+                        onClick={() => goToPage(totalPages)}
+                        className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border transition ${
+                          currentPage === totalPages
+                            ? "bg-black text-white border-black"
+                            : "border-gray-300 hover:bg-gray-100"
+                        }`}
+                      >
+                        {totalPages}
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onClick={handleNext}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Page info for mobile */}
+                <div className="text-sm text-gray-600 sm:hidden">
+                  Page {currentPage} of {totalPages}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-      {/* Products Grid */}
-      {currentProducts.length === 0 ? (
-        <p className="text-center text-gray-500">No products available.</p>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {currentProducts.map((item) => {
-            const productId = item._id?.$oid || item._id;
-            return (
-              <ProductCard
-                key={productId}
-                item={item}
-                isWishlisted={wishlist.includes(productId)}
-                onToggleWishlist={() => handleToggleWishlist(productId)}
-                onClick={() => console.log("Clicked product ID:", productId)}
-              />
-            );
-          })}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mb-24">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-            onClick={handlePrev}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-
-          <span className="text-gray-700 font-semibold">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-            onClick={handleNext}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </div>
+    </section>
   );
 };
 
